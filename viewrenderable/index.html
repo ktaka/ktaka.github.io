@@ -1,0 +1,234 @@
+
+<!doctype html>
+
+<html>
+<head>
+  <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1.0, user-scalable=yes">
+  <meta name="theme-color" content="#4F7DC9">
+  <meta charset="UTF-8">
+  <title>ARCoreハンズオン 追加機能</title>
+  <script src="../../bower_components/webcomponentsjs/webcomponents-lite.js"></script>
+  <link rel="import" href="../../elements/codelab.html">
+  <link rel="stylesheet" href="//fonts.googleapis.com/css?family=Source+Code+Pro:400|Roboto:400,300,400italic,500,700|Roboto+Mono">
+  <style is="custom-style">
+    body {
+      font-family: "Roboto",sans-serif;
+      background: var(--google-codelab-background, #F8F9FA);
+    }
+  </style>
+  
+</head>
+<body unresolved class="fullbleed">
+
+  <google-codelab title="ARCoreハンズオン 追加機能"
+                  environment="web"
+                  feedback-link="">
+    
+      <google-codelab-step label="テキストオブジェクト配置機能の追加" duration="0">
+        <p>この資料では<a href="https://codelabs.developers.google.com/codelabs/sceneform-intro/index.html" target="_blank">Sceneformのcodelab</a>で作成するアプリに機能を追加します。</p>
+<p><a href="https://developers.google.com/ar/develop/java/sceneform/create-renderables#create_from_android_widgets" target="_blank">ViewRenderable</a>を利用してテキストを表示する看板のようなオブジェクトを配置できるようにします。</p>
+<p><img style="max-width: 624.00px" src="img/2a29512c67481812.png"></p>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="ViewRenderableで読み込むレイアウトの追加" duration="5">
+        <p>res/layout の下にテキストを表示するためのレイアウトxmlを追加します。名前は billboard.xml にします。</p>
+<p>ViewRenderableに読み込ませると、このレイアウトの通りの構成のViewが板状のオブジェクトとして表示されます。</p>
+<h3>billboard.xml</h3>
+<pre><code>&lt;?xml version=&#34;1.0&#34; encoding=&#34;utf-8&#34;?&gt;
+&lt;TextView xmlns:android=&#34;http://schemas.android.com/apk/res/android&#34;
+    android:id=&#34;@+id/planetInfoCard&#34;
+    android:layout_width=&#34;wrap_content&#34;
+    android:layout_height=&#34;wrap_content&#34;
+    android:layout_weight=&#34;1&#34;
+    android:background=&#34;@drawable/rounded_bg&#34;
+    android:gravity=&#34;center&#34;
+    android:orientation=&#34;vertical&#34;
+    android:padding=&#34;6dp&#34;
+    android:text=&#34;Hello World!&#34;
+    android:textAlignment=&#34;center&#34; /&gt;
+</code></pre>
+<p>res/drawableの下にバックグラウンドのxmlを追加します。名前はrounded_bg.xmlにします。</p>
+<p>これをbackgroundとして指定することにより、角丸で青い半透明の板として表示されるようになります。</p>
+<h3>rounded_bg.xml</h3>
+<pre><code>&lt;?xml version=&#34;1.0&#34; encoding=&#34;utf-8&#34;?&gt;
+&lt;shape xmlns:android=&#34;http://schemas.android.com/apk/res/android&#34;&gt;
+    &lt;solid android:color=&#34;#E61976d2&#34;/&gt;
+    &lt;corners android:radius=&#34;5dp&#34;/&gt;
+&lt;/shape&gt;</code></pre>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="テキストオブジェクトの生成と配置メソッド" duration="5">
+        <p>MainActivity.javaに2つのメソッドを追加します。</p>
+<p>addTextObjectでは次のような処理を行います。</p>
+<ul>
+<li>画面の中心のx, y座標を取得し、そこから線を伸ばしていった際にぶつかる平面とその位置を検出する</li>
+<li>その位置にアンカーを作成し、テキスト配置のためのメソッドplaceTextObjectを呼び出す</li>
+</ul>
+<h3>MainActivity.java</h3>
+<pre><code>private void addTextObject(String msg) {
+    Frame frame = fragment.getArSceneView().getArFrame();
+    Point pt = getScreenCenter();
+    List&lt;HitResult&gt; hits;
+    if (frame != null) {
+        hits = frame.hitTest(pt.x, pt.y);
+        for (HitResult hit : hits) {
+            Trackable trackable = hit.getTrackable();
+            if ((trackable instanceof Plane &amp;&amp;
+                    ((Plane) trackable).isPoseInPolygon(hit.getHitPose()))) {
+                placeTextObject(fragment, hit.createAnchor(), msg);
+                break;
+
+
+
+            }
+        }
+    }
+}</code></pre>
+<p>placeTextObjectメソッドでは次のような処理を行います。</p>
+<ul>
+<li>ViewRenderableのsetViewメソッドに先ほど作成したbillboardのレイアウトを読み込ませる</li>
+<li>ViewRenderableのオブジェクトがrenderableとして生成されたら、getView()でTextViewのオブジェクトを取得する</li>
+<li>取得したTextViewのオブジェクトにsetTextで表示する文字列をセットする</li>
+</ul>
+<h3>MainActivity.java</h3>
+<pre><code>private void placeTextObject(ArFragment fragment, Anchor anchor, String msg) {
+    CompletableFuture&lt;Void&gt; renderableFuture =
+            ViewRenderable.builder()
+                .setView(fragment.getContext(), R.layout.billboard)
+                .build()
+                .thenAccept(renderable -&gt; {
+                    TextView textView = (TextView)renderable.getView();
+                    textView.setText(msg);
+                    addNodeToScene(fragment, anchor, renderable);
+                })
+                .exceptionally(throwable -&gt; {
+                    AlertDialog.Builder builder = new AlertDialog.Builder(this);
+                    builder.setMessage(throwable.getMessage())
+                            .setTitle(&#34;Codelab error!&#34;);
+                    AlertDialog dialog = builder.create();
+                    dialog.show();
+                    return null;
+                });
+}</code></pre>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="テキストオブジェクトを配置するアイコンの追加" duration="5">
+        <p>アイコンをダウンロードします。</p>
+<p><a href="https://material.io/tools/icons/static/icons/baseline-text_fields-black-18.zip" target="_blank">https://material.io/tools/icons/static/icons/baseline-text_fields-black-18.zip</a></p>
+<p><img style="max-width: 48.00px" src="img/6e55d9e72e6f81ae.png"></p>
+<p>このアイコンを使用します。</p>
+<p>ダウンロードしたzipファイルを解凍して、2xのフォルダの下にあるbaseline_text_fields_black_18dp.png</p>
+<p>をAndroid Studioのres/drawableの下にコピーします。</p>
+<h2>ギャラリーへの表示とタップされた際のコードの追加</h2>
+<p>プロジェクトに追加したアイコンを表示し、そのアイコンがタップされた際のリスナーのコードを追加します。</p>
+<p>MainActivity.javaのinitializeGallery()に下記の「ここから追加部分」と「ここまで追加部分」のコメントで囲まれた範囲のコードを追加します。</p>
+<h3>MainActivity.java</h3>
+<pre><code>private void initializeGallery() {
+    LinearLayout gallery = findViewById(R.id.gallery_layout);
+
+    //
+    // 〜途中省略〜
+    //
+
+    // ここから追加部分
+    ImageView text = new ImageView(this);
+     text.setImageResource(R.drawable.baseline_text_fields_black_18dp);
+    text.setContentDescription(&#34;text&#34;);
+    text.setOnClickListener(view -&gt;{addTextObject(&#34;Hello World!&#34;);});
+    gallery.addView(text);
+    // ここまで追加部分
+}</code></pre>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="ビルドして実行してみましょう！" duration="3">
+        <p><img style="max-width: 48.00px" src="img/6e55d9e72e6f81ae.png"></p>
+<p>画面下のギャラリーに追加されたこのボタンを押すと Hello World の文字が配置された板が表示されるはずです。</p>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="表示する文字を入力できるようにする" duration="5">
+        <p>Hello Worldという固定の文字列ではなく、好きな文字を入力して配置できるようにしてみましょう。</p>
+<p>MainActivity.javaにテキスト入力ダイアログを表示するメソッドを追加します。</p>
+<p>ここで行っている処理は、ダイアログで文字を入力してOKボタンが押された際に、入力された文字列を取得してaddTextObjectを呼び出すようにするものです。</p>
+<h3>MainActivity.java</h3>
+<pre><code>private void showEditTextDialog() {
+    final EditText editView = new EditText(MainActivity.this);
+    new AlertDialog.Builder(MainActivity.this)
+            .setIcon(android.R.drawable.ic_dialog_info)
+            .setTitle(&#34;テキスト入力ダイアログ&#34;)
+            .setView(editView)
+            .setPositiveButton(&#34;OK&#34;, new DialogInterface.OnClickListener() {
+                public void onClick(DialogInterface dialog, int whichButton) {
+                    addTextObject(editView.getText().toString());
+                }
+            })
+            .setNegativeButton(&#34;キャンセル&#34;, new DialogInterface.OnClickListener() {
+                public void onClick(DialogInterface dialog, int whichButton) {
+                }
+            })
+            .show();
+}</code></pre>
+<p>アイコンがタップされた際に呼び出すメソッドを変更します。「この行のみ修正する」とコメントのある行を修正します。</p>
+<h3>MainActivity.java</h3>
+<pre><code>private void initializeGallery() {
+  // 途中省略
+    ImageView text = new ImageView(this);
+    text.setImageResource(R.drawable.baseline_text_fields_black_18dp);
+    text.setContentDescription(&#34;text&#34;);
+    text.setOnClickListener(view -&gt;{showEditTextDialog();}); // この行のみ修正する
+    gallery.addView(text);
+}</code></pre>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="ビルドして実行してみましょう！" duration="0">
+        <p>ギャラリーの文字ボタンを押すとこのようにテキスト入力ダイアログが表示されて、任意の文字を入力することができます。</p>
+<p><img style="max-width: 435.98px" src="img/5bd45c56b5d5d20.png"></p>
+<p>文字を入力してOKを押すと文字を表示した板状のオブジェクトが配置されます。</p>
+<p><img style="max-width: 433.74px" src="img/6a0523f012ca321f.png"></p>
+
+
+      </google-codelab-step>
+    
+  </google-codelab>
+
+  <script>
+    (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+    (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+    m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+    })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+    ga('create', 'UA-49880327-14', 'auto');
+
+    (function() {
+      var gaCodelab = '';
+      if (gaCodelab) {
+        ga('create', gaCodelab, 'auto', {name: 'codelab'});
+      }
+
+      var gaView;
+      var parts = location.search.substring(1).split('&');
+      for (var i = 0; i < parts.length; i++) {
+        var param = parts[i].split('=');
+        if (param[0] === 'viewga') {
+          gaView = param[1];
+          break;
+        }
+      }
+      if (gaView && gaView !== gaCodelab) {
+        ga('create', gaView, 'auto', {name: 'view'});
+      }
+    })();
+  </script>
+
+</body>
+</html>
