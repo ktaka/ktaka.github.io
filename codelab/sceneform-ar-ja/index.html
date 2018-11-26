@@ -1,0 +1,699 @@
+
+<!doctype html>
+
+<html>
+<head>
+  <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1.0, user-scalable=yes">
+  <meta name="theme-color" content="#4F7DC9">
+  <meta charset="UTF-8">
+  <title>Sceneformを使ったARアプリ開発入門</title>
+  <script src="../../bower_components/webcomponentsjs/webcomponents-lite.js"></script>
+  <link rel="import" href="../../elements/codelab.html">
+  <link rel="stylesheet" href="//fonts.googleapis.com/css?family=Source+Code+Pro:400|Roboto:400,300,400italic,500,700|Roboto+Mono">
+  <style is="custom-style">
+    body {
+      font-family: "Roboto",sans-serif;
+      background: var(--google-codelab-background, #F8F9FA);
+    }
+  </style>
+  
+</head>
+<body unresolved class="fullbleed">
+
+  <google-codelab title="Sceneformを使ったARアプリ開発入門"
+                  environment="web"
+                  feedback-link="">
+    
+      <google-codelab-step label="はじめに" duration="0">
+        <p>※このコードラボ教材はGoogleの<a href="https://codelabs.developers.google.com/codelabs/sceneform-intro/index.html" target="_blank">Introduction to Sceneform</a>を<a href="https://twitter.com/ega1979" target="_blank">@ega1979</a>と<a href="https://twitter.com/ken1_taka" target="_blank">@ken1_taka</a> が日本語に翻訳したものです。</p>
+<h2>ここで学ぶこと</h2>
+<p>このコードラボでは、ARステッカーのようなアプリの開発を順を追って解説します。このアプリは配置することができるオブジェクトのギャラリーを表示し、拡張空間に設置します。そしてそのARシーンの写真を撮って保存することができます。</p>
+<p><img style="max-width: 290.62px" src="img/ec62f1f60403e2cd.png"></p>
+<p>SceneformはJavaを使って3DモデルをレンダリングするためのハイレベルのAPIを提供します。開発者がAR体験を作成する速度を劇的に早くします。</p>
+<p>特徴：</p>
+<ul>
+<li>ARCoreのセッション生成と共通のUX要素を簡単にハンドリングできるよう、SceneformのfragmentをAndroidアプリに追加します</li>
+<li>複数のオブジェクトを同じシーンに配置するための、ノードをベースにしたシーングラフ</li>
+<li>3DモデルのAndroid Studioプロジェクトへのインポート</li>
+<li>ARシーンの中にオブジェクトを配置、移動するためのやりとりのハンドリング</li>
+<li>AR体験の写真を撮る</li>
+</ul>
+<h2>事前準備</h2>
+<p>コードラボを始める前に次のものが揃っていることを確認してください。</p>
+<ul>
+<li>3.1以上のバージョンのAndroid Studio</li>
+<li>ARCore対応のAndroid端末</li>
+<li>端末とPCを接続するUSBケーブル</li>
+<li>インターネットへの接続（ビルドの際にライブラリをダウンロードするために必要）</li>
+</ul>
+<p>後ほどこのコードラボのための3Dアセットをコピーするために、GitHubのリポジトリから<a href="https://github.com/googlecodelabs/sceneform-intro/raw/master/sampledata.zip" target="_blank">サンプルアセットをダウンロード</a>しておきます。<a href="https://github.com/googlecodelabs/sceneform-intro" target="_blank">このリポジトリ</a>には参考のための完成版のプロジェクトが含まれます。</p>
+<p>はじめる前に必要なことの詳細は <a href="https://developers.google.com/ar/develop/java/sceneform/" target="_blank">https://developers.google.com/ar/develop/java/sceneform/</a> にあります。</p>
+<aside class="special"><p><a href="https://developer.android.com/studio/debug/dev-options#enable" target="_blank">開発者向けオプションとデバッグの有効化</a>を参考にして、端末の開発者向けオプションを有効にしておいてください。</p>
+</aside>
+<p>これで必要なことは全て揃いました。始めましょう！</p>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="新規プロジェクト作成" duration="1">
+        <p>Android Studioで新しいプロジェクトを次の設定で作成します。</p>
+<p><strong>Phone and Tablet API 24 7.0 (Nougat)</strong></p>
+<p><img style="max-width: 602.00px" src="img/d00e07b5c23af09b.png"></p>
+<p><strong>Basic Activity</strong> - フローティング アクション ボタンは写真を撮るためのボタンとして使用します。</p>
+<p><img style="max-width: 465.87px" src="img/362ec2b1cecbd4c7.png"></p>
+<p>activityの名前はデフォルトの &#34;MainActivity&#34; のままにしておきます。</p>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="Gradleスクリプトの修正" duration="2">
+        <p>GradleスクリプトにJava 8を有効にする記述と、Sceneformの依存関係の記述を追加します。</p>
+<h2>Java 8の有効化</h2>
+<p>SceneformはJava 8の言語記述を使用します。</p>
+<p>min APIレベルを26以上のプロジェクトで、明示的にJava 8のサポートを追加する必要があります。</p>
+<p><strong>app/build.gradle </strong>の android {} セクションに次の記述を追加します。</p>
+<h3>app/build.gradle</h3>
+<pre><code>compileOptions {
+   sourceCompatibility JavaVersion.VERSION_1_8
+   targetCompatibility JavaVersion.VERSION_1_8
+}</code></pre>
+<h2>ARCoreとSceneformの依存関係の追加</h2>
+<p><strong>app/build.gradle</strong> にSceneform APIとSceneform UXエレメントの依存関係を追加します。</p>
+<p>dependency {}  セクションに次の記述を追加します。</p>
+<h3>app/build.gradle</h3>
+<pre><code>implementation &#34;com.google.ar.sceneform.ux:sceneform-ux:1.5.0&#34;</code></pre>
+<p>&#34;Sync now&#34; のリンク文字を押してプロジェクトを更新します。</p>
+<p>これでプロジェクトの準備は完了です！</p>
+<p>Sceneformのフラグメントをビューのレイアウトに追加しましょう。</p>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="Sceneformフラグメントの追加" duration="5">
+        <p>複数のビューとのやり取りを含む良いAR体験を作るには幾つかの側面があります。</p>
+<p>例えばARCoreが平面を検出するために端末を動かすことを促すインジケーターの表示や、配置するオブジェクトを移動させたり拡大縮小するためのジェスチャーのハンドリング、といったことがあげられます。</p>
+<p>それらを実現するために、<strong>ArFragment</strong> を app/res/layout/content_main.xml ファイルに追加します。</p>
+<p>content_main.xmlを開いて、fragmentとviewを追加します。以下にレイアウトファイルのテキストを示しますが、graphicalビューの方が慣れているようでしたら遠慮なくそちらを使ってください。</p>
+<p>既にあるTextViewの記述を次のfragmentの内容で置き換えます。</p>
+<h3>content_main.xml</h3>
+<pre><code> &lt;fragment
+   android:id=&#34;@+id/sceneform_fragment&#34;
+   android:name=&#34;com.google.ar.sceneform.ux.ArFragment&#34;
+   android:layout_width=&#34;match_parent&#34;
+   android:layout_height=&#34;match_parent&#34; /&gt;</code></pre>
+<h2>ARCoreのエントリをAndroidManifestに追加する</h2>
+<p>ARCoreを使う際はAndroidManifestにエントリを必要とします。これらはアプリケーションがカメラを使うことと、AR機能を使用するにあたってアプリの実行にARCoreが必須という設定と共に使用されることを宣言します。最後のメタデータのエントリはPlayストア上でARCoreに対応していない端末からは、このアプリが見えないようフィルタリングするために使用されます。</p>
+<p>app/manifests/AndroidManifest.xmlを開いて、&lt;manifest&gt;セクションに次のエレメントを追加します。</p>
+<h3>AndroidManifest.xml</h3>
+<pre><code>&lt;uses-permission android:name=&#34;android.permission.CAMERA&#34; /&gt;
+&lt;uses-feature android:name=&#34;android.hardware.camera.ar&#34; android:required=&#34;true&#34; /&gt;</code></pre>
+<p>&lt;application&gt;セクションには次のメタデータを追加します。</p>
+<h3>AndroidManifest.xml</h3>
+<pre><code>&lt;meta-data android:name=&#34;com.google.ar.core&#34; android:value=&#34;required&#34; /&gt;</code></pre>
+<h2>ArFragmentフィールドの追加</h2>
+<p>ARシーンの実装にあたり、この先で何度もこのフラグメントを参照することになります。これを容易にするために、MainActivityを開いてクラスの先頭にメンバ変数をつぎのようにして追加します。</p>
+<h3>MainActivity.java</h3>
+<pre><code>private ArFragment fragment;</code></pre>
+<p>クラスのインポートを忘れずに！</p>
+<ul>
+<li>現在のクラスパッケージにない全てのクラスはインポートされる必要があります</li>
+<li>Android Stuiodでは、Macなら<strong>⌥-return</strong> 、Windowsなら<strong>Alt + Enter</strong> のキーを押すと自動でインポートしてくれます</li>
+</ul>
+<aside class="special"><p><strong>クラスのインポートを忘れずに！</strong></p>
+<ul>
+<li>現在のクラスパッケージにない全てのクラスはインポートされる必要があります</li>
+<li>Android Stuiodでは、Macなら<strong>⌥-return</strong> 、Windowsなら<strong>Alt + Enter</strong> のキーを押すと自動でインポートしてくれます</li>
+</ul>
+</aside>
+<p>onCreate()の最後でこの変数を初期化する処理を追加します。</p>
+<p>ここではフラグメントを使っているため、このfragmentを見つけるためにはfragment managerを使います。</p>
+<h3>MainActivity.java</h3>
+<pre><code>fragment = 
+  (ArFragment)getSupportFragmentManager().findFragmentById(R.id.sceneform_fragment);</code></pre>
+<p>さて、ここまででARCoreを使い始めるために最小限のコードが用意できました。次の手順で実際に動作するか試してみましょう！</p>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="保存とテスト実行" duration="2">
+        <p>先ほど追加したArFragmentはパーミッション、ARCoreのセッションの生成、平面検出のUIをハンドリングします。</p>
+<p>最初にカメラ使用のリクエストが表示されるはずです。</p>
+<p><img style="max-width: 305.83px" src="img/825d538afa589c02.png"></p>
+<p>続いて、平面を検出するために端末を動かす必要があることを示すアニメーションが表示されるはずです。平面の検出には表面に何らかの模様があることが必要です（白い机の上とは対象的に）</p>
+<p><img style="max-width: 304.50px" src="img/61c21aa1e7124ab3.png"></p>
+<p>床には平面を検出するのに適した場所があるはずです。検出した平面の部分は白いドットパターンで示されます。</p>
+<p><img style="max-width: 350.87px" src="img/dc2719db8faaf991.png"></p>
+<p>もし何かエラーがある場合は、この先のコードラボを進める前に解決しておきましょう。</p>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="ポインターの追加" duration="2">
+        <p>このアプリケーションではARシーンに配置できるモデルのセットを提供します。その中のひとつを選択してビューにドラッグ＆ドロップするUIを使うこともできますが、モデルを配置したい場所を見てタップする方法がベストだと思います。</p>
+<p>この方法だと操作する指が視界を隠すことがないため、画面がよく見えるようになります。ドラッグする間に端末を正しい位置に持ち続ける面倒さも軽減します。</p>
+<p>そのために、オーバーレイとしてのポインターを追加します。オーバーレイは常にスクリーンの中心に位置し、後ほど写真を撮る際は表示されないようにします。</p>
+<p>ViewオーバーレイはDrawableを必要とします。メニューから <strong>File→New→Java Class </strong>の順に選択して、PointerDrawableという名前のクラスを作成します。このクラスはDrawableを継承するようにします。Superclassにはandroid.graphics.drawable.Drawableを指定しましょう。</p>
+<p>Android Studioのエディターの中で「赤い電球のボタン」を押して、［Implement Methods］を選択します。すると空の状態の必要な各メソッドが生成されます。</p>
+<p>これから実装するポインターは2つの状態を持ちます。</p>
+<p>enabledはその位置にオブジェクトを配置できることを示し、disabledは配置できないことを示します。</p>
+<p>2つのメンバ変数が必要です。</p>
+<ul>
+<li>描画のためのPaintオブジェクト</li>
+<li>enable/disableを示すBooleanフラグ</li>
+</ul>
+<p>クラスの先頭にこれらのフィールドを追加します。</p>
+<h3>PointerDrawable.java</h3>
+<pre><code>private final Paint paint = new Paint();
+private boolean enabled;</code></pre>
+<p>enabled変数のgetterとsetterを追加します。</p>
+<h3>PointerDrawable.java</h3>
+<pre><code>public boolean isEnabled() {
+ return enabled;
+}
+
+public void setEnabled(boolean enabled) {
+ this.enabled = enabled;
+}</code></pre>
+<p>ここでdrawメソッドを実装します。enabledの時は緑の円を、disabledの時は灰色のXを描画します。</p>
+<h3>PointerDrawable.java</h3>
+<pre><code>@Override
+public void draw(@NonNull Canvas canvas) {
+ float cx = canvas.getWidth()/2;
+ float cy = canvas.getHeight()/2;
+ if (enabled) {
+   paint.setColor(Color.GREEN);
+   canvas.drawCircle(cx, cy, 10, paint);
+ } else {
+   paint.setColor(Color.GRAY);
+   canvas.drawText(&#34;X&#34;, cx, cy, paint);
+ }
+}</code></pre>
+<p>このプロジェクト用にはここまで十分ですので、他のメソッドは無視しても大丈夫です。</p>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="ポインターのコントロール" duration="5">
+        <p>MainActivityに戻って、ポインターを初期化し、ARCoreからのトラッキングの状態を元にenableとdisableにするためのコードを追加します。</p>
+<p>ARCoreにより検出された平面をユーザーが見ている際に</p>
+<p>3つのメンバー変数を<strong>MainActivity</strong>に追加します。</p>
+<ul>
+<li>PointerDrawable pointer</li>
+<li>boolean isTracking - ARCoreのトラッキング状態を示す</li>
+<li>boolean isHitting - ユーザーが平面を見ているか示す。この変数に値をセットするメソッドはhitTestと呼ばれる。そのためisHittingという名前になっている。</li>
+</ul>
+<h3>MainActivity.java</h3>
+<pre><code>private PointerDrawable pointer = new PointerDrawable();
+private boolean isTracking;
+private boolean isHitting;</code></pre>
+<p>onCreate()の最後にArSceneViewのリスナーを追加します。このリスナーは毎フレームの処理が開始される前に呼び出されます。この中ではARCoreのAPIを呼び出し、ポインターのステータスを更新することができます。</p>
+<p>ラムダを使用して最初にフラグメントのonUpdateメソッドを呼び出し、その次にMainActivityのonUpdateを呼び出します。</p>
+<h3>MainActivity.java</h3>
+<pre><code>fragment.getArSceneView().getScene().addOnUpdateListener(frameTime -&gt; {
+ fragment.onUpdate(frameTime);
+ onUpdate();
+});</code></pre>
+<h2>onUpdate() の実装</h2>
+<p>最初に、トラッキング状態を更新します。ARCoreがトラッキングをしていない場合は、トラッキングが復活するまでポインターを削除します。</p>
+<p>次に、ARCoreがトラッキングをしている場合は、ユーザーの視線がARCoreが検出した平面にぶつかるかどうかチェックし、その状況に応じてポインターをenableにします。</p>
+<h3>MainActivity.java</h3>
+<pre><code>private void onUpdate() {
+ boolean trackingChanged = updateTracking();
+ View contentView = findViewById(android.R.id.content);
+ if (trackingChanged) {
+   if (isTracking) {
+     contentView.getOverlay().add(pointer);
+   } else {
+     contentView.getOverlay().remove(pointer);
+   }
+   contentView.invalidate();
+ }
+
+ if (isTracking) {
+   boolean hitTestChanged = updateHitTest();
+   if (hitTestChanged) {
+     pointer.setEnabled(isHitting);
+     contentView.invalidate();
+   }
+ }
+}</code></pre>
+<p>updateTracking()はARCoreのカメラの状態を使用して、前回の呼び出しから状態が変わったかどうかを返します。</p>
+<h3>MainActivity.java</h3>
+<pre><code>private boolean updateTracking() {
+ Frame frame = fragment.getArSceneView().getArFrame();
+ boolean wasTracking = isTracking;
+ isTracking = frame != null &amp;&amp;
+              frame.getCamera().getTrackingState() == TrackingState.TRACKING;
+ return isTracking != wasTracking;
+}</code></pre>
+<p>updateHitTest()はARCoreのFrame.hitTest()を呼び出します。ぶつかったことが検出されると直ちにこのメソッドはリターンします。なお、ここでは画面の中心の座標を必要とするため、getScreenCenter()というヘルパーメソッドを追加します。</p>
+<h3>MainActivity.java</h3>
+<pre><code>private boolean updateHitTest() {
+ Frame frame = fragment.getArSceneView().getArFrame();
+ android.graphics.Point pt = getScreenCenter();
+ List&lt;HitResult&gt; hits;
+ boolean wasHitting = isHitting;
+ isHitting = false;
+ if (frame != null) {
+   hits = frame.hitTest(pt.x, pt.y);
+   for (HitResult hit : hits) {
+     Trackable trackable = hit.getTrackable();
+     if (trackable instanceof Plane &amp;&amp;
+             ((Plane) trackable).isPoseInPolygon(hit.getHitPose())) {
+       isHitting = true;
+       break;
+     }
+   }
+ }
+ return wasHitting != isHitting;
+}
+
+private android.graphics.Point getScreenCenter() {
+ View vw = findViewById(android.R.id.content);
+ return new android.graphics.Point(vw.getWidth()/2, vw.getHeight()/2);
+}</code></pre>
+<p>ここまででポインターの実装を完了しました。動作するか試してみましょう！</p>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="実行とポインターのテスト" duration="1">
+        <p>それでは再び動作させてみましょう。アプリが起動すると、ARCoreのトラッキングが始まるまでポインターは見えません。</p>
+<p>端末を周囲を見回すように動かすと平面が検出され、平面上にのっているか外れるかに合わせてポインターのenabledとdisabledが切り替わるはずです。</p>
+<p>それでは、3Dモデルをインポートしてアイテムを生成してギャラリーに追加しましょう！</p>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="SceneformプラグインのAndroid Studioへの追加" duration="2">
+        <p>SceneformにはAndroid Studioの3Dモデルのインポートを補助してくれるプラグインがあり、gradelファイルへの追加とモデルのプレビューもしてくれます。</p>
+<p>プラグインはAndroid StudioのPreferences（Windowsの場合はSettings）からインストールすることができます。</p>
+<p>Pluginsセクションを開いたら[Browse repositories]を押して「Google Sceneform Tools (Beta)」をインストールします。</p>
+<p><img style="max-width: 496.50px" src="img/dfc8f21afd8b64e2.png"></p>
+<p><img style="max-width: 458.50px" src="img/af01770db1ae6ca2.png"></p>
+<p>では、このプラグインを使ってモデルをインポートしましょう！</p>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="サンプル3Dモデルのプロジェクトへの追加" duration="3">
+        <p>Android Studio 3.1以降では「<strong>sampledata</strong>」という新しいフォルダタイプがサポートされています。このフォルダはデータをサンプルする時間のために使われます。ここでの目的は、3Dアセットをこのフォルダに元のまま保持することです。sampledataにあるファイルはAPKには追加されませんが、Android Studioのエディタ上では見ることができます。sceneformに合わせたモデルを作成するために、gradleに変換のタスクを追加して、アプリの実行時に使用できるようassetsフォルダに追加します。</p>
+<p>projectビューでapp をクリックし、マウスの右クリックで開くメニューから[New]→[Sample Data Directory]の順に選択してsampledataフォルダを作成します。</p>
+<p>GitHubからリソース <a href="https://github.com/googlecodelabs/sceneform-intro/raw/master/sampledata.zip" target="_blank">sampledata.zip </a>をダウンロードします。これには2つのフォルダが含まれます。</p>
+<ul>
+<li>models -  app/sampledataにコピーします</li>
+<li>Thumbnails  - app/src/main/res/drawableにコピーします</li>
+</ul>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="モデルのインポート" duration="3">
+        <p>このコードラボでは、テーブルトップ（卓上）サイズのシーンを作成するための4つのモデルがあります（これに対してルームスケールという言葉があります）。</p>
+<p>これらのモデルはapp/sampledata/modelsの下にあるはずです（もしない場合は１つ前のステップに戻ってモデルをコピーしてください）。モデルは１つのオブジェクトに複数のファイルが関連付けられています。メインとなるモデルファイルは次の通りです。</p>
+<ul>
+<li>Andy.obj - おなじみのAndroid</li>
+<li>Cabin.obj - ログキャビンのモデル</li>
+<li>House.obj - 家のモデル</li>
+<li>Igloo.obj - イグルー（氷のブロックの家）のモデル</li>
+</ul>
+<p>これらのモデルはGoogleによって作成されたものでCC-BYライセンスで提供されています。これら、および他にもたくさんのモデルが<a href="https://poly.google.com/" target="_blank">Polyというウェブサイト</a>にあります。</p>
+<p>Sceneformプラグインを使って変換タスクをbuild.gradleに追加して、モデルをプレビューしましょう。</p>
+<p><strong>app/sampledata/models/andy.obj</strong>を選択し、右クリックして開くメニューから [New] → [Import Sceneform Asset] の順に選択します。すると Import Wizard ダイアログが開き、全ての設定項目には適切な内容が設定された状態になります。</p>
+<p><img style="max-width: 530.50px" src="img/26a1eac95a1047d8.png"></p>
+<p>Finishボタンを押してモデルをインポートします。</p>
+<p>インポートが完了すると、.sfbファイルがエディターで開かれます。このリストは変換の際の調整のためのパラメーターです。Sceneformビューワーも開かれて、インポートされたモデルが表示されます。</p>
+<p><img style="max-width: 590.50px" src="img/af01770db1ae6ca2.png"></p>
+<h2>Cabin.objの変換</h2>
+<p>同じ手順でapp/sampledata/models/Cabin.objも変換しましょう。</p>
+<p>Cabinのモデルはandyと比較するとかなり大きいことに気がつくと思います。3Dモデルを扱う時にはよくあることです。幸運にも、Cabin.sfaを編集して変換の際にサイズを調整することができます。</p>
+<p>scale:と書いてある行を見つけて、値を0.0005に変更します。</p>
+<p>ファイルを保存してリビルドすると、Cabinは小さくなるはずです。</p>
+<h2>House.objの変換</h2>
+<p>モデルファイルはapp/sampledata/models/House.objにあるので同様に変換します。このモデルは調整の必要はありません。</p>
+<h2>igloo.objの変換</h2>
+<p>モデルファイルはapp/sampledata/models/igloo.objにあります。このモデルはscaleを<strong>0.25</strong>に設定します。</p>
+<p>これで3Dアセットの準備が整いました。次はそれらをギャラリーに追加しましょう。</p>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="モデルのギャラリーの追加" duration="5">
+        <p>このアプリの拡張空間に追加できるモデルのシンプルなリストを追加します。RecyclerViewsはアイテムのスクロールリストを表示するのに最適ですが、それは別の日のトピックにしましょう。ここではLinearLayoutを使います。</p>
+<h2>LinearLayoutのlayoutファイルへの追加</h2>
+<p>app/res/layout/content_main.xmlを開き、 &lt;fragment&gt;の下にLinearLayoutを追加します。</p>
+<p>LinearLayoutの属性には次のようにセットします。</p>
+<ul>
+<li><strong>id</strong>: @+id/gallery_layout</li>
+<li><strong>layout_width</strong>: match_parent<em> (we want to span the width of the device)</em></li>
+<li><strong>layout_height</strong>: 0dp <em>(this causes the height to be calculated by the constraint layout)</em></li>
+<li><strong>orientation</strong>: horizontal <em>(fill the layout left to right)</em></li>
+</ul>
+<p>画面の下の方に置くためにlayoutのconstraintsには次のようにセットします。</p>
+<ul>
+<li><strong>layout_constraintBottom_toBottomOf</strong>: parent</li>
+<li><strong>layout_constraintTop_toBottomOf</strong>: @+id/sceneform_fragment</li>
+<li><strong>layout_constraintVertical_chainStyle</strong>: spread</li>
+<li><strong>layout_constraintVertical_weight</strong>: 1</li>
+</ul>
+<h3>content_main.xml</h3>
+<pre><code> &lt;LinearLayout
+        android:id=&#34;@+id/gallery_layout&#34;
+        android:layout_width=&#34;match_parent&#34;
+        android:layout_height=&#34;0dp&#34;
+        android:orientation=&#34;horizontal&#34;
+        app:layout_constraintBottom_toBottomOf=&#34;parent&#34;
+        app:layout_constraintTop_toBottomOf=&#34;@+id/sceneform_fragment&#34;
+        app:layout_constraintVertical_chainStyle=&#34;spread&#34;
+        app:layout_constraintVertical_weight=&#34;1&#34;/&gt;</code></pre>
+<h2>fragmentのレイアウト調整</h2>
+<p>fragmentのレイアウトを修正して画面の上の方に配置されるようにします。</p>
+<ul>
+<li><strong>layout_height</strong>: 0dp <em>(this causes the height to be calculated by the constraint layout)</em></li>
+<li><strong>layout_constraintTop_toTopOf</strong>: parent</li>
+<li><strong>layout_constraintBottom_toTopOf</strong>: @id/gallery_layout</li>
+<li><strong>layout_constraintVertical_chainStyle</strong>: spread</li>
+<li><strong>layout_constraintVertical_weight</strong>: 9</li>
+</ul>
+<p>編集後は次のようになります。</p>
+<h3>content_main.xml</h3>
+<pre><code>  &lt;fragment
+        android:id=&#34;@+id/sceneform_fragment&#34;
+        android:name=&#34;com.google.ar.sceneform.ux.ArFragment&#34;
+        android:layout_width=&#34;match_parent&#34;
+        android:layout_height=&#34;0dp&#34;
+        app:layout_constraintTop_toTopOf=&#34;parent&#34; 
+        app:layout_constraintBottom_toTopOf=&#34;@id/gallery_layout&#34;
+        app:layout_constraintVertical_chainStyle=&#34;spread&#34;
+        app:layout_constraintVertical_weight=&#34;9&#34;/&gt;</code></pre>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="モデルのギャラリーの初期化" duration="5">
+        <p>それではギャラリーを作成しましょう。各アイテムは名前、assetsフォルダのsfbモデルへのuri、モデルのサムネイル画像のリソースIDを持っています。</p>
+<p>MainActivityの最後の方にinitializeGallery()メソッドを追加します。</p>
+<p>まず最初にgallery layoutのビューを取得し、各アイテムを生成してギャラリーに追加していきます。</p>
+<p>各アイテムではサムネイルのためにImageViewを作成し、シーンにモデルを追加する操作のためのonClickListenerを追加します。</p>
+<h3>MainActivity.java</h3>
+<pre><code>private void initializeGallery() {
+ LinearLayout gallery = findViewById(R.id.gallery_layout);
+
+ ImageView andy = new ImageView(this);
+ andy.setImageResource(R.drawable.droid_thumb);
+ andy.setContentDescription(&#34;andy&#34;);
+ andy.setOnClickListener(view -&gt;{addObject(Uri.parse(&#34;andy.sfb&#34;));});
+ gallery.addView(andy);
+
+ ImageView cabin = new ImageView(this);
+ cabin.setImageResource(R.drawable.cabin_thumb);
+ cabin.setContentDescription(&#34;cabin&#34;);
+ cabin.setOnClickListener(view -&gt;{addObject(Uri.parse(&#34;Cabin.sfb&#34;));});
+ gallery.addView(cabin);
+
+ ImageView house = new ImageView(this);
+ house.setImageResource(R.drawable.house_thumb);
+ house.setContentDescription(&#34;house&#34;);
+ house.setOnClickListener(view -&gt;{addObject(Uri.parse(&#34;House.sfb&#34;));});
+ gallery.addView(house);
+
+ ImageView igloo = new ImageView(this);
+ igloo.setImageResource(R.drawable.igloo_thumb);
+ igloo.setContentDescription(&#34;igloo&#34;);
+ igloo.setOnClickListener(view -&gt;{addObject(Uri.parse(&#34;igloo.sfb&#34;));});
+ gallery.addView(igloo);
+}</code></pre>
+<h2>addObjectメソッドの追加</h2>
+<p>このメソッドはギャラリーのアイテムの１つがクリックされた際に呼び出されます。3D空間のどこにオブジェクトを配置するか決定するためにhittest（当たり判定）を実行し、実際の場所に配置するためにplaceObjectを呼び出します。</p>
+<h3>MainActivity.java</h3>
+<pre><code>private void addObject(Uri model) {
+ Frame frame = fragment.getArSceneView().getArFrame();
+ android.graphics.Point pt = getScreenCenter();
+ List&lt;HitResult&gt; hits;
+ if (frame != null) {
+   hits = frame.hitTest(pt.x, pt.y);
+   for (HitResult hit : hits) {
+     Trackable trackable = hit.getTrackable();
+     if (trackable instanceof Plane &amp;&amp;
+             ((Plane) trackable).isPoseInPolygon(hit.getHitPose())) {
+       placeObject(fragment, hit.createAnchor(), model);
+       break;
+
+     }
+   }
+ }
+}</code></pre>
+<h2>placeObjectメソッドの追加</h2>
+<p>placeObject() はhitTestの結果からARCoreのアンカーを取得してSceneformのノードを作成します。ModelRenderable.builderを使用して非同期で3Dモデルのローディングを開始します。このコードラボでは小さなモデルを使用しますが、より大きなモデルはロードに相当の時間を要することになります。</p>
+<p>Renderableとしてモデルがロードされると、addNodeToSceneを呼び出します。もしエラーが発生したばあいはアラートダイアログを表示します。</p>
+<h3>MainActivity.java</h3>
+<pre><code>private void placeObject(ArFragment fragment, Anchor anchor, Uri model) {
+ CompletableFuture&lt;Void&gt; renderableFuture =
+         ModelRenderable.builder()
+                 .setSource(fragment.getContext(), model)
+                 .build()
+                 .thenAccept(renderable -&gt; addNodeToScene(fragment, anchor, renderable))
+                 .exceptionally((throwable -&gt; {
+                  AlertDialog.Builder builder = new AlertDialog.Builder(this);
+                     builder.setMessage(throwable.getMessage())
+                       .setTitle(&#34;Codelab error!&#34;);
+                     AlertDialog dialog = builder.create();
+                    dialog.show();
+                   return null;
+                 }));
+}</code></pre>
+<h2>addNodeToSceneメソッドの追加</h2>
+<p>addNodeToScene() は２つのノードを作成し、ArSceneViewのシーンオブジェクトにアタッチします。</p>
+<p>1つめのノードは<strong>AnchoNode</strong>型です。Anchor nodesはARCore Anchor（アンカー）のポーズを元に配置されます。</p>
+<p>2つめのノードは<strong>TransformableNode</strong>です。ここではベースクラスの型の<strong>Node</strong>を使うこともできますが、Nodeはユーザーの操作による移動や拡大縮小、回転のインタラクション機能は持っていません。</p>
+<p>nodeが生成され、お互いに接続されると、AnchorNodeをSceneに接続し、インタラクションのためにnodeを選択してフォーカスを持ちます。</p>
+<h3>MainActivity.java</h3>
+<pre><code>private void addNodeToScene(ArFragment fragment, Anchor anchor, Renderable renderable) {
+ AnchorNode anchorNode = new AnchorNode(anchor);
+ TransformableNode node = new TransformableNode(fragment.getTransformationSystem());
+ node.setRenderable(renderable);
+ node.setParent(anchorNode);
+ fragment.getArSceneView().getScene().addChild(anchorNode);
+ node.select();
+}</code></pre>
+<p>やりました！あとはInitializeGalleryをonCreate()の最後で呼び出すようにします。</p>
+<h3>MainActivity.java</h3>
+<pre><code>initializeGallery();</code></pre>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="実行しましょう！" duration="1">
+        <p>ここでアプリを実行すると、ARCoreがトラッキングを開始するとポインターが現れるはずです。</p>
+<p>平面が検出され、その平面を見るようにするとポインターは緑に変わります。</p>
+<p>アイテムをタップして、その場所に配置してみましょう！</p>
+<p>オブジェクトを平面に沿って動かしたり、拡大縮小したり、回転することもできます。</p>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="写真の撮影" duration="10">
+        <p>写真撮影の機能を追加しましょう。フローティング アクション ボタンを変更してArSceneViewのイメージをphotosフォルダーに保存し、intentを起動してそれを見られるようにします。</p>
+<p>最初に、フローティング アクション ボタンのアイコンを封筒のものからカメラのアイコンに変更しましょう。</p>
+<p>app/res/layout/activity_main.xmlで、</p>
+<p>フローティング アクション ボタンの記述を見つけて、srcCompatを次のように修正します。</p>
+<h3>activity_main.xml</h3>
+<pre><code>app:srcCompat=&#34;@android:drawable/ic_menu_camera&#34; /&gt;</code></pre>
+<p>このアプリで書き出す先のパスを指定する必要があります。これはxmlのリソースファイルを必要とします。projectビューで <strong>app/res</strong> を選択し、右クリックして表示されるメニューから [New] → [Directory] の順に選択して、xmlという名前でフォルダを作成します。</p>
+<p>xmlフォルダを選択し、paths.xmlという名前でXMLファイルを作成します。</p>
+<p>次のように画像のexternal pathを記述します。</p>
+<h3>paths.xml</h3>
+<pre><code>&lt;?xml version=&#34;1.0&#34; encoding=&#34;utf-8&#34;?&gt;
+&lt;paths xmlns:android=&#34;http://schemas.android.com/apk/res/android&#34;&gt;
+   &lt;external-path name=&#34;my_images&#34; path=&#34;Pictures&#34; /&gt;
+&lt;/paths&gt;</code></pre>
+<p>AndroidManifest.xmlに url provider を追加します。撮影した写真のセキュアなパスのurlをintent経由で取得するために必要です。</p>
+<p>&lt;application&gt;エレメントの中に次のように追加します。</p>
+<h3>AndroidManifest.xml</h3>
+<pre><code>&lt;provider
+   android:name=&#34;android.support.v4.content.FileProvider&#34;
+   android:authorities=&#34;${applicationId}.ar.codelab.name.provider&#34;
+   android:exported=&#34;false&#34;
+   android:grantUriPermissions=&#34;true&#34;&gt;
+   &lt;meta-data
+       android:name=&#34;android.support.FILE_PROVIDER_PATHS&#34;
+       android:resource=&#34;@xml/paths&#34;/&gt;
+&lt;/provider&gt;</code></pre>
+<h2>外部ストレージのパーミッションの追加</h2>
+<p>これは２つのパートがあり、まず最初にmanifestの<strong>CAMERA</strong>パーミッションの後に次のように追加します。</p>
+<h3>AndroidManifest.xml</h3>
+<pre><code>&lt;uses-permission android:name=&#34;android.permission.WRITE_EXTERNAL_STORAGE&#34;/&gt;</code></pre>
+<p>次にパーミッションのリクエストを出す必要があります。追加のパーミッションリクエストができるようfragmentを拡張します。super classに com.google.ar.sceneform.ux.ArFragmentを設定して WritingArFragmentという名前の新しいクラスを作成します。</p>
+<p>追加パーミッションとして、外部ストレージの書き込みパーミッションを追加します。これによりfragmentがアプリケーション開始時にそのリクエストを出せるようになります。</p>
+<h3>WritingArFragment.java</h3>
+<pre><code>public class WritingArFragment extends ArFragment {
+   @Override
+   public String[] getAdditionalPermissions() {
+       String[] additionalPermissions = super.getAdditionalPermissions();
+       int permissionLength = additionalPermissions != null ? additionalPermissions.length : 0;
+       String[] permissions = new String[permissionLength + 1];
+       permissions[0] = Manifest.permission.WRITE_EXTERNAL_STORAGE;
+       if (permissionLength &gt; 0) {
+           System.arraycopy(additionalPermissions, 0, permissions, 1, additionalPermissions.length);
+       }
+       return permissions;
+   }
+}</code></pre>
+<p>そしてcontent_main.xmlを編集して、WritingArFragmentを使用するよう置き換えます。</p>
+<h3>content_main.xml</h3>
+<pre><code>&lt;fragment
+   android:id=&#34;@+id/sceneform_fragment&#34;
+   android:name=&#34;fully.qualified.class.name.WritingArFragment&#34;
+   android:layout_width=&#34;match_parent&#34;
+   android:layout_height=&#34;0dp&#34;
+   app:layout_constraintTop_toTopOf=&#34;parent&#34;
+   app:layout_constraintBottom_toTopOf=&#34;@id/gallery_layout&#34;
+   app:layout_constraintVertical_chainStyle=&#34;spread&#34;
+   app:layout_constraintVertical_weight=&#34;9&#34; /&gt;</code></pre>
+<h2>generateFilenameメソッドの追加</h2>
+<p>撮影した写真にはユニークなファイル名が必要です。写真のファイル名は標準のpictures directoryを使用して生成され、Sceneformのアルバム名になります。各画像の名前は撮影時刻を元に生成され、他のものを上書きする心配はありません。このパスは先ほど作成したpaths.xmlに関連づけられます。</p>
+<h3>MainActivity.java</h3>
+<pre><code>private String generateFilename() {
+ String date =
+         new SimpleDateFormat(&#34;yyyyMMddHHmmss&#34;, java.util.Locale.getDefault()).format(new Date());
+ return Environment.getExternalStoragePublicDirectory(
+         Environment.DIRECTORY_PICTURES) + File.separator + &#34;Sceneform/&#34; + date + &#34;_screenshot.jpg&#34;;
+}</code></pre>
+<h2>saveBitmapToDiskメソッドの追加</h2>
+<p>saveBitmapToDisk() はビットマップ画像をファイルに書き出します。</p>
+<h3>MainActivity.java</h3>
+<pre><code>private void saveBitmapToDisk(Bitmap bitmap, String filename) throws IOException {
+
+   File out = new File(filename);
+   if (!out.getParentFile().exists()) {
+       out.getParentFile().mkdirs();
+   }
+   try (FileOutputStream outputStream = new FileOutputStream(filename);
+        ByteArrayOutputStream outputData = new ByteArrayOutputStream()) {
+       bitmap.compress(Bitmap.CompressFormat.PNG, 100, outputData);
+       outputData.writeTo(outputStream);
+       outputStream.flush();
+       outputStream.close();
+   } catch (IOException ex) {
+       throw new IOException(&#34;Failed to save bitmap to disk&#34;, ex);
+   }
+}</code></pre>
+<h2>takePhotoメソッドの追加</h2>
+<p>takePhoto() はPixelCopy APIを使用してArSceneViewのスクリーンショットをキャプチャします。フレームの間をまたいで発生するため非同期で実行されます。リスナーが呼び出されると、bitmapがストレージに保存され、snackbarが表示されて画像用アプリとして設定されたものがintentで開かれます。</p>
+<h3>MainActivity.java</h3>
+<pre><code>private void takePhoto() {
+   final String filename = generateFilename();
+   ArSceneView view = fragment.getArSceneView();
+
+   // Create a bitmap the size of the scene view.
+   final Bitmap bitmap = Bitmap.createBitmap(view.getWidth(), view.getHeight(),
+           Bitmap.Config.ARGB_8888);
+
+   // Create a handler thread to offload the processing of the image.
+   final HandlerThread handlerThread = new HandlerThread(&#34;PixelCopier&#34;);
+   handlerThread.start();
+   // Make the request to copy.
+   PixelCopy.request(view, bitmap, (copyResult) -&gt; {
+       if (copyResult == PixelCopy.SUCCESS) {
+           try {
+               saveBitmapToDisk(bitmap, filename);
+           } catch (IOException e) {
+               Toast toast = Toast.makeText(MainActivity.this, e.toString(),
+                       Toast.LENGTH_LONG);
+               toast.show();
+               return;
+           }
+           Snackbar snackbar = Snackbar.make(findViewById(android.R.id.content),
+                   &#34;Photo saved&#34;, Snackbar.LENGTH_LONG);
+           snackbar.setAction(&#34;Open in Photos&#34;, v -&gt; {
+               File photoFile = new File(filename);
+
+               Uri photoURI = FileProvider.getUriForFile(MainActivity.this,
+                       MainActivity.this.getPackageName() + &#34;.ar.codelab.name.provider&#34;,
+                       photoFile);
+               Intent intent = new Intent(Intent.ACTION_VIEW, photoURI);
+               intent.setDataAndType(photoURI, &#34;image/*&#34;);
+               intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+               startActivity(intent);
+
+           });
+           snackbar.show();
+       } else {
+           Toast toast = Toast.makeText(MainActivity.this,
+                   &#34;Failed to copyPixels: &#34; + copyResult, Toast.LENGTH_LONG);
+           toast.show();
+       }
+       handlerThread.quitSafely();
+   }, new Handler(handlerThread.getLooper()));
+}</code></pre>
+<p>最後の手順はフローティング アクション ボタンのonClickListenerでtakePhoto()を呼び出すように変更します。これはonCreate()にあり、次のようにします。</p>
+<h3>MainActivity.java</h3>
+<pre><code>fab.setOnClickListener(view -&gt; takePhoto());</code></pre>
+<p>ようやくできました！</p>
+<p>もう一度実行してAR写真を撮ってみましょう！</p>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="おめでとうございます！ 完成です！" duration="0">
+        <p>これでコードラボを完成することができました！</p>
+<p>ここまででカバーしたことをまとめると次のようになります。</p>
+<ul>
+<li>ARCoreの初期化と平面検出のためのSceneformのUX fragment使用する</li>
+<li>モデルをインポートしてプレビューするためにAndroid StudioのSceneformプラグインを使用する</li>
+<li>移動、拡大縮小、回転の操作をするためにTransformableNodeを使用する</li>
+<li>視線を空間の中にオブジェクトを配置する場所を決定するためのポインターとして使う</li>
+<li>画面のイメージをキャプチャして写真として、共有に適した形で保存する</li>
+</ul>
+<h2>他のリソース</h2>
+<ul>
+<li>AR Concepts: <a href="https://developers.google.com/ar/discover/concepts" target="_blank">https://developers.google.com/ar/discover/concepts</a></li>
+<li>Google Developers ARCore <a href="https://developers.google.com/ar/" target="_blank">https://developers.google.com/ar/</a></li>
+<li>Github projects for ARCore: <a href="https://github.com/google-ar" target="_blank">https://github.com/google-ar</a></li>
+<li>AR experiments for inspiration and to see what could be possible: <a href="https://experiments.withgoogle.com/ar" target="_blank">https://experiments.withgoogle.com/ar</a></li>
+<li>日本語で質問、相談できるフォーラム <a href="http://bit.ly/vrar_ja" target="_blank">http://bit.ly/vrar_ja</a></li>
+</ul>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="追加課題" duration="0">
+        <p>任意の文字列を表示する板を配置する機能を追加するための<a href="https://ktaka.github.io/codelab/viewrenderable/" target="_blank">資料はこちら</a>です。</p>
+<p><img style="max-width: 254.50px" src="img/28863e6a6c944c35.png"></p>
+<p>（※ こちらは  <a href="https://twitter.com/ken1_taka" target="_blank">@ken1_taka</a> が作成した日本語版オリジナルの課題です）</p>
+
+
+      </google-codelab-step>
+    
+  </google-codelab>
+
+  <script>
+    (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+    (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+    m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+    })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+    ga('create', 'UA-49880327-14', 'auto');
+
+    (function() {
+      var gaCodelab = '';
+      if (gaCodelab) {
+        ga('create', gaCodelab, 'auto', {name: 'codelab'});
+      }
+
+      var gaView;
+      var parts = location.search.substring(1).split('&');
+      for (var i = 0; i < parts.length; i++) {
+        var param = parts[i].split('=');
+        if (param[0] === 'viewga') {
+          gaView = param[1];
+          break;
+        }
+      }
+      if (gaView && gaView !== gaCodelab) {
+        ga('create', gaView, 'auto', {name: 'view'});
+      }
+    })();
+  </script>
+
+</body>
+</html>
