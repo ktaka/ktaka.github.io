@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1.0, user-scalable=yes">
   <meta name="theme-color" content="#4F7DC9">
   <meta charset="UTF-8">
-  <title>ARCoreハンズオン 追加機能</title>
+  <title>ViewRenderable (Sceneformコードラボ追加課題）</title>
   <script src="../../bower_components/webcomponentsjs/webcomponents-lite.js"></script>
   <link rel="import" href="../../elements/codelab.html">
   <link rel="stylesheet" href="//fonts.googleapis.com/css?family=Source+Code+Pro:400|Roboto:400,300,400italic,500,700|Roboto+Mono">
@@ -20,12 +20,12 @@
 </head>
 <body unresolved class="fullbleed">
 
-  <google-codelab title="ARCoreハンズオン 追加機能"
+  <google-codelab title="ViewRenderable (Sceneformコードラボ追加課題）"
                   environment="web"
                   feedback-link="">
     
       <google-codelab-step label="テキストオブジェクト配置機能の追加" duration="0">
-        <p>この資料では<a href="https://codelabs.developers.google.com/codelabs/sceneform-intro/index.html" target="_blank">Sceneformのcodelab</a>で作成するアプリに機能を追加します。</p>
+        <p>この資料では<a href="https://ktaka.github.io/codelab/sceneform-ar-ja/" target="_blank">Sceneformのcodelab</a>で作成するアプリに機能を追加します。</p>
 <p><a href="https://developers.google.com/ar/develop/java/sceneform/create-renderables#create_from_android_widgets" target="_blank">ViewRenderable</a>を利用してテキストを表示する看板のようなオブジェクトを配置できるようにします。</p>
 <p><img style="max-width: 624.00px" src="img/2a29512c67481812.png"></p>
 
@@ -79,7 +79,7 @@
             Trackable trackable = hit.getTrackable();
             if ((trackable instanceof Plane &amp;&amp;
                     ((Plane) trackable).isPoseInPolygon(hit.getHitPose()))) {
-                placeTextObject(fragment, hit.createAnchor(), msg);
+                placeTextObject(hit.createAnchor(), msg);
                 break;
 
 
@@ -95,7 +95,7 @@
 <li>取得したTextViewのオブジェクトにsetTextで表示する文字列をセットする</li>
 </ul>
 <h3>MainActivity.java</h3>
-<pre><code>private void placeTextObject(ArFragment fragment, Anchor anchor, String msg) {
+<pre><code>private void placeTextObject(Anchor anchor, String msg) {
     CompletableFuture&lt;Void&gt; renderableFuture =
             ViewRenderable.builder()
                 .setView(fragment.getContext(), R.layout.billboard)
@@ -103,7 +103,7 @@
                 .thenAccept(renderable -&gt; {
                     TextView textView = (TextView)renderable.getView();
                     textView.setText(msg);
-                    addNodeToScene(fragment, anchor, renderable);
+                    addNodeToScene(anchor, renderable);
                 })
                 .exceptionally(throwable -&gt; {
                     AlertDialog.Builder builder = new AlertDialog.Builder(this);

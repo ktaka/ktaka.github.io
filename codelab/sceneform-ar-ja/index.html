@@ -137,8 +137,8 @@
     
       <google-codelab-step label="保存とテスト実行" duration="2">
         <p>先ほど追加したArFragmentはパーミッション、ARCoreのセッションの生成、平面検出のUIをハンドリングします。</p>
-<p>最初にカメラ使用のリクエストが表示されるはずです。</p>
-<p><img style="max-width: 305.83px" src="img/825d538afa589c02.png"></p>
+<p>最初にカメラ使用権限のリクエストが表示されるはずです。</p>
+<p><img style="max-width: 330.22px" src="img/f33c5f6c7051b0ee.png"></p>
 <p>続いて、平面を検出するために端末を動かす必要があることを示すアニメーションが表示されるはずです。平面の検出には表面に何らかの模様があることが必要です（白い机の上とは対象的に）</p>
 <p><img style="max-width: 304.50px" src="img/61c21aa1e7124ab3.png"></p>
 <p>床には平面を検出するのに適した場所があるはずです。検出した平面の部分は白いドットパターンで示されます。</p>
@@ -286,9 +286,10 @@ private android.graphics.Point getScreenCenter() {
       </google-codelab-step>
     
       <google-codelab-step label="SceneformプラグインのAndroid Studioへの追加" duration="2">
-        <p>SceneformにはAndroid Studioの3Dモデルのインポートを補助してくれるプラグインがあり、gradelファイルへの追加とモデルのプレビューもしてくれます。</p>
+        <p>SceneformにはAndroid Studioの3Dモデルのインポートを補助してくれるプラグインがあり、gradleファイルへの追加とモデルのプレビューもしてくれます。</p>
 <p>プラグインはAndroid StudioのPreferences（Windowsの場合はSettings）からインストールすることができます。</p>
 <p>Pluginsセクションを開いたら[Browse repositories]を押して「Google Sceneform Tools (Beta)」をインストールします。</p>
+<p>もしPluginが表示されない場合は、もう一度Android Studioのバージョンを確認してください。Google Sceneform Toolsは3.1以降のバージョンのAndroid Studioを必要とします。</p>
 <p><img style="max-width: 496.50px" src="img/dfc8f21afd8b64e2.png"></p>
 <p><img style="max-width: 458.50px" src="img/af01770db1ae6ca2.png"></p>
 <p>では、このプラグインを使ってモデルをインポートしましょう！</p>
@@ -301,8 +302,8 @@ private android.graphics.Point getScreenCenter() {
 <p>projectビューでapp をクリックし、マウスの右クリックで開くメニューから[New]→[Sample Data Directory]の順に選択してsampledataフォルダを作成します。</p>
 <p>GitHubからリソース <a href="https://github.com/googlecodelabs/sceneform-intro/raw/master/sampledata.zip" target="_blank">sampledata.zip </a>をダウンロードします。これには2つのフォルダが含まれます。</p>
 <ul>
-<li>models -  app/sampledataにコピーします</li>
-<li>Thumbnails  - app/src/main/res/drawableにコピーします</li>
+<li>sampledata/models -  app/sampledataにコピーします</li>
+<li>sampledata/drawable  - app/src/main/res/drawableにコピーします</li>
 </ul>
 
 
@@ -312,18 +313,35 @@ private android.graphics.Point getScreenCenter() {
         <p>このコードラボでは、テーブルトップ（卓上）サイズのシーンを作成するための4つのモデルがあります（これに対してルームスケールという言葉があります）。</p>
 <p>これらのモデルはapp/sampledata/modelsの下にあるはずです（もしない場合は１つ前のステップに戻ってモデルをコピーしてください）。モデルは１つのオブジェクトに複数のファイルが関連付けられています。メインとなるモデルファイルは次の通りです。</p>
 <ul>
-<li>Andy.obj - おなじみのAndroid</li>
+<li>andy_dance.fbx - おなじみのAndroid</li>
 <li>Cabin.obj - ログキャビンのモデル</li>
 <li>House.obj - 家のモデル</li>
 <li>Igloo.obj - イグルー（氷のブロックの家）のモデル</li>
 </ul>
 <p>これらのモデルはGoogleによって作成されたものでCC-BYライセンスで提供されています。これら、および他にもたくさんのモデルが<a href="https://poly.google.com/" target="_blank">Polyというウェブサイト</a>にあります。</p>
 <p>Sceneformプラグインを使って変換タスクをbuild.gradleに追加して、モデルをプレビューしましょう。</p>
-<p><strong>app/sampledata/models/andy.obj</strong>を選択し、右クリックして開くメニューから [New] → [Import Sceneform Asset] の順に選択します。すると Import Wizard ダイアログが開き、全ての設定項目には適切な内容が設定された状態になります。</p>
-<p><img style="max-width: 530.50px" src="img/26a1eac95a1047d8.png"></p>
+<p><strong>app/sampledata/models/andy_dance.fbx</strong>を選択し、右クリックして開くメニューから [Import Sceneform Asset] の順に選択します。すると Import Wizard ダイアログが開き、全ての設定項目には適切な内容が設定された状態になります。</p>
+<p><img style="max-width: 602.00px" src="img/321d9936a542c4c.png"></p>
+<p>&#34;+&#34;ボタンを押してAnimation Filesの項目を追加し、<strong>sampledata/models/andy_dance.fbx</strong>を選択します。</p>
 <p>Finishボタンを押してモデルをインポートします。</p>
+<p>このインポート処理はテキストファイルである <strong>‘.sfa&#39;</strong> ファイルを生成し、その.sfaファイルはバイナリの <strong>‘.sfb&#39;</strong> ファイルにコンパイルされます。&#39;.sfa&#39;ファイルはアセットと手入力で編集するパラメーターのためのjson風の仕様を含みます。&#39;.sfb&#39;ファイルはアプリケーションで使うためのバイナリリソースにコンパイルされます。Sceneformプラグインは&#39;sfb&#39;ファイルを開いてエディターで調整することができますが、編集した内容は&#39;sfa&#39;ファイルに保存され、&#39;.sfb&#39;のバイナリアセットに同期されることに留意してください。</p>
 <p>インポートが完了すると、.sfbファイルがエディターで開かれます。このリストは変換の際の調整のためのパラメーターです。Sceneformビューワーも開かれて、インポートされたモデルが表示されます。</p>
-<p><img style="max-width: 590.50px" src="img/af01770db1ae6ca2.png"></p>
+<p><img style="max-width: 602.00px" src="img/385ffd7f5c2a6277.png"></p>
+<p>修正する共通パラメーターは‘scale&#39;です。&#39;model&#39;オブジェクトに <strong>scale: 0.25, </strong>の行を追加します。修正した結果は次のようになります。</p>
+<pre><code>model: {
+ scale: 0.25,
+ attributes: [
+   &#39;Position&#39;,
+   &#39;TexCoord&#39;,
+   &#39;Orientation&#39;,
+   &#39;BoneIndices&#39;,
+   &#39;BoneWeights&#39;,
+ ],
+ collision: {},
+ file: &#39;sampledata/models/andy_dance.fbx&#39;,
+ name: &#39;andy_dance&#39;,
+ recenter: &#39;root&#39;,
+},</code></pre>
 <h2>Cabin.objの変換</h2>
 <p>同じ手順でapp/sampledata/models/Cabin.objも変換しましょう。</p>
 <p>Cabinのモデルはandyと比較するとかなり大きいことに気がつくと思います。3Dモデルを扱う時にはよくあることです。幸運にも、Cabin.sfaを編集して変換の際にサイズを調整することができます。</p>
@@ -402,7 +420,7 @@ private android.graphics.Point getScreenCenter() {
  ImageView andy = new ImageView(this);
  andy.setImageResource(R.drawable.droid_thumb);
  andy.setContentDescription(&#34;andy&#34;);
- andy.setOnClickListener(view -&gt;{addObject(Uri.parse(&#34;andy.sfb&#34;));});
+ andy.setOnClickListener(view -&gt;{addObject(Uri.parse(&#34;andy_dance.sfb&#34;));});
  gallery.addView(andy);
 
  ImageView cabin = new ImageView(this);
@@ -424,7 +442,7 @@ private android.graphics.Point getScreenCenter() {
  gallery.addView(igloo);
 }</code></pre>
 <h2>addObjectメソッドの追加</h2>
-<p>このメソッドはギャラリーのアイテムの１つがクリックされた際に呼び出されます。3D空間のどこにオブジェクトを配置するか決定するためにhittest（当たり判定）を実行し、実際の場所に配置するためにplaceObjectを呼び出します。</p>
+<p>このメソッドはギャラリーのアイテムの１つがクリックされた際に呼び出されます。3D空間のどこにオブジェクトを配置するか決定するためにhittest（当たり判定）を実行し、実際の場所に配置するためにmodelLoader.loadModelを呼び出します。</p>
 <h3>MainActivity.java</h3>
 <pre><code>private void addObject(Uri model) {
  Frame frame = fragment.getArSceneView().getArFrame();
@@ -436,45 +454,77 @@ private android.graphics.Point getScreenCenter() {
      Trackable trackable = hit.getTrackable();
      if (trackable instanceof Plane &amp;&amp;
              ((Plane) trackable).isPoseInPolygon(hit.getHitPose())) {
-       placeObject(fragment, hit.createAnchor(), model);
+       modelLoader.loadModel(hit.createAnchor(), model);
        break;
 
      }
    }
  }
 }</code></pre>
-<h2>placeObjectメソッドの追加</h2>
-<p>placeObject() はhitTestの結果からARCoreのアンカーを取得してSceneformのノードを作成します。ModelRenderable.builderを使用して非同期で3Dモデルのローディングを開始します。このコードラボでは小さなモデルを使用しますが、より大きなモデルはロードに相当の時間を要することになります。</p>
-<p>Renderableとしてモデルがロードされると、addNodeToSceneを呼び出します。もしエラーが発生したばあいはアラートダイアログを表示します。</p>
-<h3>MainActivity.java</h3>
-<pre><code>private void placeObject(ArFragment fragment, Anchor anchor, Uri model) {
- CompletableFuture&lt;Void&gt; renderableFuture =
-         ModelRenderable.builder()
-                 .setSource(fragment.getContext(), model)
-                 .build()
-                 .thenAccept(renderable -&gt; addNodeToScene(fragment, anchor, renderable))
-                 .exceptionally((throwable -&gt; {
-                  AlertDialog.Builder builder = new AlertDialog.Builder(this);
-                     builder.setMessage(throwable.getMessage())
-                       .setTitle(&#34;Codelab error!&#34;);
-                     AlertDialog dialog = builder.create();
-                    dialog.show();
-                   return null;
-                 }));
+<h2>ModelLoaderクラスの追加</h2>
+<p>ModelRenderable builderを使用して3Dモデルの非同期ローディングを開始するModelLoaderクラスを作成します。モデルをロードしている最中だとしてもActivityクラスは任意のポイントで置き換えたり破壊される可能性があります。ModelLoaderがActivityのライフサイクルに沿うことを確実にするためにweak reference（弱い参照）が使われています。このコードラボではサイズが小さいモデルを使用しますが、サイズの大きいモデルはロードするのに相当の時間を要します。</p>
+<h3>ModelLoader.java</h3>
+<pre><code>public class ModelLoader {
+   private final WeakReference&lt;MainActivity&gt; owner;
+   private static final String TAG = &#34;ModelLoader&#34;;
+
+   ModelLoader(WeakReference&lt;MainActivity&gt; owner) {
+       this.owner = owner;
+   }
+
+   void loadModel(Anchor anchor, Uri uri) {
+       if (owner.get() == null) {
+           Log.d(TAG, &#34;Activity is null.  Cannot load model.&#34;);
+           return;
+       }
+       ModelRenderable.builder()
+               .setSource(owner.get(), uri)
+               .build()
+               .handle((renderable, throwable) -&gt; {
+                           MainActivity activity = owner.get();
+                           if (activity == null) {
+                               return null;
+                           } else if (throwable != null) {
+                               activity.onException(throwable);
+                           } else {
+                               activity.addNodeToScene(anchor, renderable);
+                           }
+                           return null;
+                       });
+
+       return;
+   }
 }</code></pre>
+<p>さらに、MainActivityにModelLoaderのインスタンスを追加します。</p>
+<h3>MainActivity.java</h3>
+<pre><code>private ModelLoader modelLoader;</code></pre>
+<p>onCreateにmodelLoaderを初期化するコードを追加します。</p>
+<h3>MainActivity.java</h3>
+<pre><code>modelLoader = new ModelLoader(new WeakReference&lt;&gt;(this));</code></pre>
 <h2>addNodeToSceneメソッドの追加</h2>
 <p>addNodeToScene() は２つのノードを作成し、ArSceneViewのシーンオブジェクトにアタッチします。</p>
 <p>1つめのノードは<strong>AnchoNode</strong>型です。Anchor nodesはARCore Anchor（アンカー）のポーズを元に配置されます。</p>
 <p>2つめのノードは<strong>TransformableNode</strong>です。ここではベースクラスの型の<strong>Node</strong>を使うこともできますが、Nodeはユーザーの操作による移動や拡大縮小、回転のインタラクション機能は持っていません。</p>
 <p>nodeが生成され、お互いに接続されると、AnchorNodeをSceneに接続し、インタラクションのためにnodeを選択してフォーカスを持ちます。</p>
 <h3>MainActivity.java</h3>
-<pre><code>private void addNodeToScene(ArFragment fragment, Anchor anchor, Renderable renderable) {
+<pre><code>public void addNodeToScene(Anchor anchor, Renderable renderable) {
  AnchorNode anchorNode = new AnchorNode(anchor);
  TransformableNode node = new TransformableNode(fragment.getTransformationSystem());
  node.setRenderable(renderable);
  node.setParent(anchorNode);
  fragment.getArSceneView().getScene().addChild(anchorNode);
  node.select();
+}</code></pre>
+<h3>onExceptionの追加</h3>
+<p>ネットワークがダウンしているときに、リモートでのロードを失敗とするようにします。</p>
+<h3>MainActivity.java</h3>
+<pre><code>public void onException(Throwable throwable){
+   AlertDialog.Builder builder = new AlertDialog.Builder(this);
+   builder.setMessage(throwable.getMessage())
+           .setTitle(&#34;Codelab error!&#34;);
+   AlertDialog dialog = builder.create();
+   dialog.show();
+   return;
 }</code></pre>
 <p>やりました！あとはInitializeGalleryをonCreate()の最後で呼び出すようにします。</p>
 <h3>MainActivity.java</h3>
@@ -488,6 +538,54 @@ private android.graphics.Point getScreenCenter() {
 <p>平面が検出され、その平面を見るようにするとポインターは緑に変わります。</p>
 <p>アイテムをタップして、その場所に配置してみましょう！</p>
 <p>オブジェクトを平面に沿って動かしたり、拡大縮小したり、回転することもできます。</p>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="アニメーションの追加" duration="10">
+        <h2>Sceneform animationの依存関係の追加</h2>
+<p>app/build.gradleにSceneform animationのためのオプションの依存関係を追加します。</p>
+<h3>app/build.gradle</h3>
+<pre><code>implementation &#34;com.google.ar.sceneform:animation:1.8.0&#34;</code></pre>
+<h2>アニメーションの開始</h2>
+<p>MainActivityの最後の方にstartAnimation()という名前のメソッドを追加します。</p>
+<h3>MainActivity.java</h3>
+<pre><code>public void startAnimation(TransformableNode node, ModelRenderable renderable){
+   if(renderable==null || renderable.getAnimationDataCount() == 0) {
+       return;
+   }
+   for(int i = 0;i &lt; renderable.getAnimationDataCount();i++){
+       AnimationData animationData = renderable.getAnimationData(i);
+   }
+   ModelAnimator animator = new ModelAnimator(renderable.getAnimationData(0), renderable);
+   animator.start();
+}</code></pre>
+<p>addNodeToSceneの最後に上で追加したメソッドを呼び出すコードを追加します。</p>
+<h3>MainActivity.java</h3>
+<pre><code>if (renderable instanceof ModelRenderable) {
+    startAnimation(node, (ModelRenderable)renderable);
+}</code></pre>
+<p>ここでアプリケーションを実行してアニメーションの動作をテストすることができます。この時点ではアニメーションは1回のみ実行されます。</p>
+<h2>onTapListenerにアニメーションの一時停止／再開機能をつける</h2>
+<p>次に、オブジェクトをタップするとアニメーションを再生したり停止させるようにします。</p>
+<p>アニメーションの状態をトグルするメソッドを追加します。</p>
+<h3>MainActivity.java</h3>
+<pre><code>public void togglePauseAndResume(ModelAnimator animator) {
+   if (animator.isPaused()) {
+       animator.resume();
+   } else if (animator.isStarted()) {
+       animator.pause();
+   } else {
+       animator.start();
+   }
+}</code></pre>
+<p>startAnimationの終わりの方に、上で追加したメソッドを呼び出すonTapListenerを追加します。</p>
+<h3>MainActivity.java</h3>
+<pre><code>node.setOnTapListener(
+       (hitTestResult, motionEvent) -&gt; {
+           togglePauseAndResume(animator);
+       });</code></pre>
+<p>これでタップ操作でダンスするアニメーションを開始したり止めたりすることができます。</p>
 
 
       </google-codelab-step>
@@ -653,6 +751,8 @@ private android.graphics.Point getScreenCenter() {
 <li>AR experiments for inspiration and to see what could be possible: <a href="https://experiments.withgoogle.com/ar" target="_blank">https://experiments.withgoogle.com/ar</a></li>
 <li>日本語で質問、相談できるフォーラム <a href="http://bit.ly/vrar_ja" target="_blank">http://bit.ly/vrar_ja</a></li>
 </ul>
+<h2>改訂履歴</h2>
+<p>2019年5月23日 <a href="https://codelabs.developers.google.com/codelabs/sceneform-intro/index.html" target="_blank">本家</a>のアニメーション対応を日本語版にも反映</p>
 
 
       </google-codelab-step>
