@@ -1,0 +1,386 @@
+
+<!doctype html>
+
+<html>
+<head>
+  <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1.0, user-scalable=yes">
+  <meta name="theme-color" content="#4F7DC9">
+  <meta charset="UTF-8">
+  <title>はじめてのFlutterアプリ作成 パート１</title>
+  <link rel="stylesheet" href="//fonts.googleapis.com/css?family=Source+Code+Pro:400|Roboto:400,300,400italic,500,700|Roboto+Mono">
+  <link rel="stylesheet" href="//fonts.googleapis.com/icon?family=Material+Icons">
+  <link rel="stylesheet" href="https://storage.googleapis.com/codelab-elements/codelab-elements.css">
+  <style>
+    .success {
+      color: #1e8e3e;
+    }
+    .error {
+      color: red;
+    }
+  </style>
+</head>
+<body>
+  <google-codelab-analytics gaid="UA-49880327-14"></google-codelab-analytics>
+  <google-codelab codelab-gaid=""
+                  id=""
+                  title="はじめてのFlutterアプリ作成 パート１"
+                  environment="web"
+                  feedback-link="">
+    
+      <google-codelab-step label="はじめに" duration="1">
+        <p>※このコードラボ教材はGoogleの<a href="https://codelabs.developers.google.com/codelabs/first-flutter-app-pt1" target="_blank">Write your first Flutter app, part 1</a> (Last updated Apr 14, 2021) を<a href="https://twitter.com/ken1_taka" target="_blank">@ken1_taka</a>が日本語に翻訳したものです。</p>
+<p>FlutterはGoogle製の美しい、ネイティブにコンパイルされたアプリケーションを作るためのUIツールキットで、ひとつのコードベースからモバイル、ウェブ、デスクトップのアプリケーションを生成できます。Flutterは世界中のデベロッパーや組織で使われる既存のコードとともに動作し、フリーでオープンソースです。</p>
+<p>このコードラボではシンプルなモバイル用のFlutterアプリを作成します。あなたがオブジェクト指向のコードや、変数やループ、条件分岐などの基本的なプログラミングの概念が分かっていればこのコードラボを完成させることができます。Dart、モバイル、ウェブのプログラミング経験はなくても大丈夫です。</p>
+<h2 is-upgraded><strong>パート1で学ぶこと</strong></h2>
+<ul>
+<li>iOSやAndroid、ウェブで自然に見えるFlutterアプリを書く方法</li>
+<li>Flutterアプリの基本構造</li>
+<li>機能を拡張するパッケージを探し、使う方法</li>
+<li>素早く開発サイクルを回すためのホットリロードの使い方</li>
+<li>状態を維持するウィジェットを実装する方法</li>
+<li>限界のない遅延ロードリストの作り方</li>
+</ul>
+<p>このコードラボのパート2では、インタラクティブ性の追加、アプリのテーマの変更、新たな画面への遷移（Flutterではルートと呼びます）の機能を追加します。</p>
+<h2 is-upgraded><strong>パート1で作るもの</strong></h2>
+<p>スタートアップの会社名の提案リストを生成するシンプルなアプリを作成します。ユーザーは名前を選択したり洗濯を解除することができ、ベストなものをひとつ保存できます。コードは一度に10種類の名前を遅延生成します。ユーザーがスクロールすると追加の名前が生成されます。ユーザーがどれだけスクロールしても制限はありません。</p>
+<p>次のアニメGIFはこのパートで完成するアプリの動作を示しています。</p>
+<p class="image-container"><img style="width: 454.00px" src="img/8cd0de1374171b4f.gif"></p>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="Flutter環境のセットアップ" duration="10">
+        <p>このコードラボを完了するには2つのソフトウェアが必要です。それは<a href="https://flutter.io/get-started/install/" target="_blank">Flutter SDK</a>と<a href="https://flutter.io/get-started/editor/" target="_blank">エディター</a>です（コードラボではAndroid Studioを使うと仮定して進めますが、エディターはお好みのものを使うことができます。）</p>
+<p>このコードラボは下記のデバイスの何れでも実行することができます。</p>
+<ul>
+<li>PCに接続してデベロッパーモードにしてある<a href="https://flutter.io/setup-macos/#set-up-your-android-device" target="_blank">Android</a>もしくは<a href="https://flutter.io/setup-macos/#deploy-to-ios-devices" target="_blank">iOS</a>の実機</li>
+<li><a href="https://flutter.io/setup-macos/#set-up-the-ios-simulator" target="_blank">iOSシミュレーター</a>（Xcode toolsのインストールが必要）</li>
+<li><a href="https://flutter.io/setup-macos/#set-up-the-android-emulator" target="_blank">Androidエミュレーター</a>（Android Studioでのセットアップが必要）</li>
+<li>ブラウザー（デバッグにはChromeが必要）</li>
+</ul>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="スターターFlutterアプリの作成" duration="5">
+        <p><img style="width: 24.00px" src="img/b2f84ff91b0e1396.png">テンプレート化されたシンプルなFlutterアプリを作成します。startup_namerという名前でFlutterプロジェクトを作成し、以下のようにしてヌルセーフにマイグレートします。</p>
+<pre>$ flutter create startup_namer
+$ cd startup_namer
+$ dart migrate --apply-changes</pre>
+<p>通常はDartのコードがある<code>lib/main.dart</code>を編集します。</p>
+<p><img style="width: 24.00px" src="img/b2f84ff91b0e1396.png"><code>lib/main.dart</code>を置き換えます。<code>lib/main.dart</code>のすべてのコードを一旦削除し、下記のコードで置き換えます。このコードは画面の中心に&#34;Hello World&#34;を表示するものです。</p>
+<pre><code>import &#39;package:flutter/material.dart&#39;;
+
+void main() =&gt; runApp(MyApp());
+
+class MyApp extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: &#39;Welcome to Flutter&#39;,
+      home: Scaffold(
+        appBar: AppBar(
+          title: const Text(&#39;Welcome to Flutter&#39;),
+        ),
+        body: const Center(
+          child: const Text(&#39;Hello World&#39;),
+        ),
+      ),
+    );
+  }
+}</code></pre>
+<aside class="special"><p><strong>ヒント: </strong>コードをペーストする際、インデントが崩れることがあります。Flutter toolsで次のようにして修正できます。</p>
+<ul>
+<li>Android StudioもしくはInteliJ IDEA: コードを右クリックして<strong>Reformat Code with dartfmt</strong>を選択します</li>
+<li>VS Code: 右クリックして<strong>Format Document</strong>を選択します</li>
+<li>ターミナル: <strong>flutter format ＜ファイル名＞</strong>を実行します</li>
+</ul>
+</aside>
+<p><img style="width: 24.00px" src="img/b2f84ff91b0e1396.png"><a href="https://flutter.io/get-started/test-drive/#androidstudio" target="_blank">アプリを実行します</a>。Android, iOS, ウェブへの出力でそれぞれのデバイスに合わせて表示されます。</p>
+<table>
+<tr><td colspan="1" rowspan="1"><p>Android</p>
+</td><td colspan="1" rowspan="1"><p>iOS</p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p class="image-container"><img style="width: 286.00px" src="img/f9df7832965ede9f.png"></p>
+</td><td colspan="1" rowspan="1"><p class="image-container"><img style="width: 286.00px" src="img/a65ddf4649d963e9.png"></p>
+</td></tr>
+</table>
+<aside class="special"><p><strong>ヒント: </strong>最初に実機で実行する際はロードされるまでしばらく時間がかかります。以降はホットリロードを使って素早く更新することができます。対応しているIDEでは、アプリを実行している最中は<strong>Save</strong>（保存）するとホットリロードが実行されます。コンソールから<strong>flutter run</strong>を使用して直接アプリを実行している際にホットリロードをするには<strong>r</strong>キーを押します。</p>
+</aside>
+<p><img style="width: 27.00px" src="img/cf1e10b838bf60ee.png">注目するところ</p>
+<ul>
+<li>この例ではマテリアルアプリを作成します。<a href="https://material.io/design" target="_blank">マテリアル</a>はモバイルとウェブにおける標準のビジュアルデザイン言語です。</li>
+<li>メインメソッドではアロー（<code>=&gt;</code>）記法を使用します。アロー記法は1行の関数やメソッドに使います。</li>
+<li>アプリは<code>StatelessWidget</code>を拡張し、アプリ自身をウィジェットにします。Flutterではアラインメント、パディング、レイアウトを含むほぼすべてのものがウィジェットです。</li>
+<li>マテリアルライブラリの<code>Scaffold</code>ウィジェットは標準のアップバー、タイトルとホームスクリーンのウィジェットツリーを保持するボディのプロパティを提供します。ウィジェットのサブツリーはかなり複雑になります</li>
+<li>ウィジェットのメインの仕事は他の低レベルのウィジェットに関して ウィジェットのどのように表示するか記述する<code>build</code>メソッドを提供することです。</li>
+<li>この例のボディは<code>Text</code>子ウィジェットを含む<code>Center</code>ウィジェットから成ります。<code>Center</code>ウィジェットはそのウィジェットのサブツリーを画面の中心に揃えます。</li>
+</ul>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="外部パッケージを使用する" duration="8">
+        <p>このステップでは、<code>english_words</code>という名前のオープンソースのパッケージを使っていきます。このパッケージには数千の頻出英単語と便利な機能が含まれています。</p>
+<p><code>english_words</code>は他のオープンソースのパッケージと同様に<a href="https://pub.dev/" target="_blank">pub.dev</a>で見つけることができます。</p>
+<p><img style="width: 24.00px" src="img/b2f84ff91b0e1396.png">pubspecファイルはFlutterアプリのアセットを管理します。<code>pubspec.yaml</code>内のdependenciesリストに<code>english_words: ^4.0.0</code>（<code>english_words</code>の4.0.0もしくはそれ以降のバージョン）を追加します。</p>
+<pre><code>dependencies:
+  flutter:
+    sdk: flutter
+
+  cupertino_icons: ^1.0.2
+  english_words: ^4.0.0   # この行を追加する</code></pre>
+<p><img style="width: 24.00px" src="img/b2f84ff91b0e1396.png">Android Studioのエディタービューでpubspecを確認したら、<strong>Packages get</strong>をクリックします。これによりパッケージがプロジェクトに取り込まれます。コンソールには次のように表示されるはずです。</p>
+<pre><code>flutter packages get
+Running &#34;flutter packages get&#34; in startup_namer...
+Process finished with exit code 0</code></pre>
+<p><code>dart pub get</code>を実行することでプロジェクトに取り込まれた全パッケージとそのバージョンのリストが<code>pubspec.lock</code>に自動生成されます。</p>
+<p><img style="width: 24.00px" src="img/b2f84ff91b0e1396.png"><code>lib/main.dart</code>に1行追加して新しいパッケージをインポートします。</p>
+<pre><code>import &#39;package:flutter/material.dart&#39;;
+import &#39;package:english_words/english_words.dart&#39;;  // この行を追加する</code></pre>
+<p>キーボードからの入力に応じてAndroid Studioはインポートするライブラリを提示します。灰色で表示されるものは、そのインポートされたライブラリが（現時点では）未使用であることを示します。</p>
+<p>次に、&#34;Hello World&#34;の代わりとなる文字を生成するために<code>english_words</code>パッケージを使っていきます。</p>
+<p><img style="width: 24.00px" src="img/b2f84ff91b0e1396.png">以下のように修正します。</p>
+<pre><code>import &#39;package:flutter/material.dart&#39;;
+import &#39;package:english_words/english_words.dart&#39;;
+
+void main() =&gt; runApp(MyApp());
+
+class MyApp extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    final wordPair = WordPair.random(); // この行を追加する
+    return MaterialApp(
+      title: &#39;Welcome to Flutter&#39;,
+      home: Scaffold(
+        appBar: AppBar(
+          title: Text(&#39;Welcome to Flutter&#39;),
+        ),
+        body: Center(                       // constを外し,
+          //child: Text(&#39;Hello World&#39;),     // この行を
+          child: Text(wordPair.asPascalCase),  // このように置き換える
+        ),
+      ),
+    );
+  }
+}</code></pre>
+<aside class="special"><p><strong>ヒント: </strong>パスカルケース（アッパーキャメルケースとも言う）は最初の単語も含めて各単語の最初の文字を大文字にします。例えば<code>uppercamelcase</code>は<code>UpperCamelCase</code>となります。</p>
+</aside>
+<p><img style="width: 24.00px" src="img/b2f84ff91b0e1396.png">アプリが動作中であればホットリロード<img style="width: 13.00px" src="img/e11f6ccd1560a28b.png">で動作中のアプリが更新されます。（コマンドラインからは<code>r</code>キーを押すことでリロードできます。）ホットリロードをクリックするかプロジェクトを保存するたびに、異なる単語のペアがランダムに選ばれて表示されるはずです。これは<code>build</code>メソッドの中で単語のペアが生成されるためで、buildメソッドは<code>MaterialApp</code>が描画を必要とする際、もしくはFlutter InspectorのPlatformを切り替えた際に実行されます。</p>
+<table>
+<tr><td colspan="1" rowspan="1"><p>Android</p>
+</td><td colspan="1" rowspan="1"><p>iOS</p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p class="image-container"><img style="width: 286.00px" src="img/57cfbac8f2b50e5b.png"></p>
+</td><td colspan="1" rowspan="1"><p class="image-container"><img style="width: 286.00px" src="img/90868fe990af9d65.png"></p>
+</td></tr>
+</table>
+<h2 is-upgraded>問題がある場合</h2>
+<p>アプリが正しく動作しない場合はタイプミスがないか確認してください。必要な場合は以下のリンク先のコードを使用して続けることもできます。</p>
+<ul>
+<li><a href="https://github.com/flutter/codelabs/blob/master/startup_namer_null_safety/step2_use_package/pubspec.yaml" target="_blank">pubspec.yaml</a></li>
+<li><a href="https://github.com/flutter/codelabs/blob/master/startup_namer_null_safety/step2_use_package/lib/main.dart" target="_blank">lib/main.dart</a></li>
+</ul>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="ステートフルウィジェットの追加" duration="4">
+        <p>ステートレスウィジェットはイミュータブル（変化しない）です。そのプロパティが変更できないことを意味し、全ての値は確定しています。</p>
+<p>ステートフル（処理状態を把握する）ウィジェットはウィジェットが生存する間に変化する状態を維持します。ステートフルウィジェットの実装には最低限2つのクラスが必要で、1つは<code>State</code>クラスのインスタンスを生成する<code>StatefulWidget</code>です。<code>StatefulWidget</code>オブジェクトは、それ自身イミュータブルで、破棄され再び生成されるのですが、<code>State</code>オブジェクトはウィジェットの生存期間を通して残り続けます。</p>
+<p>このステップでは、ステートフルウィジェットである<code>RandomWords</code>を追加します。これはその<code>State</code>クラスである<code>_RandomWordsState</code>を生成します。そのあとに<code>RandomWords</code>を既存の<code>MyApp</code>内の子要素として使用します。</p>
+<p><img style="width: 24.00px" src="img/b2f84ff91b0e1396.png">ステートフルウィジェット用のボイラープレート（ひな形）コードを作成します</p>
+<p>MyAppの外側であればどこでも良いのですが、ファイルの下の方に置くのが良いでしょう。<code>lib/main.dart</code>のコードの一番下にカーソルを置き、リターンキーを数回押して新しい行から始めます。使用しているIDEで<code>stful</code>と入力すると、「New Stateful Widget（<code>Stateful</code>ウィジェットを作成しますか？）」と聞いてくるのでリターンキーを押して答えます。すると2つのクラスのひな形のコードが作成され、カーソルはステートフルウィジェットの名前を入力する位置に置かれます。</p>
+<p><img style="width: 24.00px" src="img/b2f84ff91b0e1396.png">ウィジェットの名前として<code>RandomWords</code>を入力します</p>
+<p>下記のコードのように、<code>RandomWords</code>ウィジェットはその<code>State</code>クラスを生成する以外のことも少し行います。</p>
+<p>ステートフルウィジェットの名前として<code>RandomWords</code>と入力すると、IDEは自動的に付随する<code>State</code>クラスを更新します。この場合<code>_RandomWordsState</code>となります。デフォルトでは<code>State</code>クラスの名前の先頭にアンダースコアが付加されます。Dart言語ではアンダースコアがついた識別子は内部用途限定となり、<code>State</code>オブジェクトにはその慣例があてはめられます。</p>
+<p>IDEはstateクラスを<code>State&lt;RandomWords&gt;</code>を継承するように自動的に更新します。これはジェネリックな<code>State</code>クラスを<code>RandomWords</code>で指定したものを使っていることを示しています。アプリのロジックのほとんどはここに属し、<code>RandomWords</code>ウィジェットの状態を保持します。このクラスは生成された単語のペアのリストを保存します。そのリストはユーザーがスクロールすることで無限に増えます。そしてこのコードラボのパート2ではリストのハートアイコンを押すことで単語のペアをお気に入りに入れたり外したりすることができるようにします。</p>
+<p>それぞれのクラスは次のようになります。</p>
+<pre><code>class RandomWords extends StatefulWidget {
+  @override
+  _RandomWordsState createState() =&gt; _RandomWordsState();
+}
+
+class _RandomWordsState extends State&lt;RandomWords&gt; {
+  @override
+  Widget build(BuildContext context) {
+    return Container();
+  }
+}</code></pre>
+<p><img style="width: 24.00px" src="img/b2f84ff91b0e1396.png"><code>_RandomWordsState</code>の<code>build()</code>メソッドを修正します。</p>
+<p><code>return Container();</code>の部分を下記の2行で置き換えます。</p>
+<pre><code>class _RandomWordsState extends State&lt;RandomWords&gt; {
+  @override                                  
+  Widget build(BuildContext context) {
+    final wordPair = WordPair.random();      // 新しい行
+    return Text(wordPair.asPascalCase);      // 新しい行
+  }                                         
+}</code></pre>
+<p><img style="width: 24.00px" src="img/b2f84ff91b0e1396.png"><code>MyApp</code>の単語を生成するコードを削除し、下記のようにコードを修正します。</p>
+<pre><code>class MyApp extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    final wordPair = WordPair.random();  // この行を削除
+
+    return MaterialApp(
+      title: &#39;Welcome to Flutter&#39;,
+      home: Scaffold(
+        appBar: AppBar(
+          title: Text(&#39;Welcome to Flutter&#39;),
+        ),
+        body: Center(
+          //child: Text(wordPair.asPascalCase), // この行を... 
+          child: RandomWords(),                 // ...これで置き換える
+        ),
+      ),
+    );
+  }
+}</code></pre>
+<p><img style="width: 24.00px" src="img/b2f84ff91b0e1396.png"><code>アプリをホットリロードします。アプリは前と同じ用に動作し、単語のペアがホットリロードするかアプリを保存する度に表示されます。</code></p>
+<aside class="special"><p><strong>ヒント: </strong>ホットリロードの際にアプリを再起動が必要というワーニングが出た場合は、アプリを再起動してみてください。誤検出の可能性がありますが、再起動することで変更をアプリのUIに確実に反映します。</p>
+</aside>
+<h2 is-upgraded>問題がある場合</h2>
+<p>アプリが正しく動作しない場合はタイプミスを確認してください。必要な場合は以下のリンク先のコードを使用して続けることもできます。</p>
+<ul>
+<li><a href="https://github.com/flutter/codelabs/blob/master/startup_namer_null_safety/step3_stateful_widget/lib/main.dart" target="_blank">lib/main.dart</a></li>
+</ul>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="無限スクロールのリストビューの作成" duration="10">
+        <p>このステップでは単語のペアのリストを生成して表示するように<code>_RandomWordsState</code>を拡張します。ユーザーがスクロールすると、リスト（<code>ListView</code>ウィジェットに表示されている）は無限に増えていきます。<code>ListView</code>の<code>builder</code>ファクトリーコンストラクターは必要に応じてリストビューを遅延生成することができるようになっています。</p>
+<p><img style="width: 24.00px" src="img/b2f84ff91b0e1396.png"><code>_RandomWordsState</code>クラスに状態変数を追加します。</p>
+<p>単語のペアを保存するための<code>_suggestions</code>リストを追加します。さらにフォントサイズを大きくするための<code>_biggerFont</code>変数も追加します。</p>
+<pre><code>class _RandomWordsState extends State&lt;RandomWords&gt; {
+  final _suggestions = &lt;WordPair&gt;[];                 // 追加する
+  final _biggerFont = const TextStyle(fontSize: 18); // 追加する
+  ...
+}</code></pre>
+<p>次に、<code>_buildSuggestions()</code>関数を<code>_RandomWordsState</code>クラスに追加します。このメソッドは単語のペアを表示する<code>ListView</code>を作成します。</p>
+<p><code>ListView</code>クラスには<code>itemBuilder</code>というbuilderプロパティがあり、ファクトリービルダーで匿名関数で定義されるコールバック関数です。2つのパラメーター（<code>BuildContext</code>と行のイテレーターである<code>i</code>）が関数に渡されます。イテレーターは0から始まり、関数が呼び出される度、つまり単語のペアが提示される度に値が増加します。このモデルによりユーザーのスクロール操作に伴い提示リストが増え続けるようにすることができます。</p>
+<p><img style="width: 24.00px" src="img/b2f84ff91b0e1396.png"><code>_buildSuggestions</code>関数を追加します。</p>
+<p><code>_RandomWordsState</code>クラスの中に下記の関数を追加します。コメント部分は消して頂いても構いません。</p>
+<pre><code> Widget _buildSuggestions() {
+    return ListView.builder(
+      padding: const EdgeInsets.all(16),
+      // itemBuilderコールバックは単語のペアが提示される度に呼び出され
+      // それぞれListTitle行に配置する。偶数行では、関数はListTitle行を
+      // その単語のペアのために追加する。奇数行では、関数は各行を
+      // 見た目上区別しやすくするための仕切りとなるウィジェットを追加する。
+      // 小さなデバイスでは仕切りは見にくくなるかもしれないことに留意する。
+      itemBuilder: (BuildContext _context, int i) {
+        // ListViewの各行に1ピクセル以上の仕切りのウィジェットを追加する
+        if (i.isOdd) {
+          return Divider();
+        }
+
+        // &#34;i ~/ 2&#34;はiを2で割った結果を整数の値として返す。
+        // 例として1, 2, 3, 4, 5は0, 1, 1, 2, 2となる。
+        // これはListView内の仕切りウィジェットの数を引いたもので
+        // 実際の単語のペアの数を求める。
+        final int index = i ~/ 2;
+        // 提供済みの単語のペア群の終わりに到達した時は...
+        if (index &gt;= _suggestions.length) {
+          // ...さらに10件を生成し、suggestionsリストに追加する
+          _suggestions.addAll(generateWordPairs().take(10));
+        }
+        return _buildRow(_suggestions[index]);
+      }
+    );
+  }</code></pre>
+<p><code>_buildSuggestions</code>関数は<code>_buildRow</code>を単語のペアごとに呼び出します。この関数は新たなペアを<code>ListTitle</code>に表示します。パート2でより良くすることができるようにしておくためです。</p>
+<p><img style="width: 24.00px" src="img/b2f84ff91b0e1396.png"><code>_buildRow</code>関数を<code>_RowndomWordsState</code>に追加します。</p>
+<pre><code> Widget _buildRow(WordPair pair) {
+    return ListTitle(
+      title: Text(
+        pair.asPascalCase,
+        style: _biggerFont,
+      ),
+    );
+  }</code></pre>
+<p><img style="width: 24.00px" src="img/b2f84ff91b0e1396.png"><code>_RandomWordsState</code>の<code>build</code>メソッドを修正します。</p>
+<p>直接単語生成ライブラリを呼び出すのではなく、<code>_buildSuggestions()</code>を使用するように変更します。（<code>Scaffold</code>は基本的なマテリアルデザインの見た目のレイアウトを実装します。）</p>
+<pre><code> @override
+  Widget build(BuildContext context) {
+    //final wordPair = WordPair.random(); // この行を削除する
+    //return Text(wordPair.asPascalCase); // この行を削除する
+
+    return Scaffold (                     // この行から... 
+      appBar: AppBar(
+        title: Text(&#39;Startup Name Generator&#39;),
+      ),
+      body: _buildSuggestions(),
+    );                                      // ...この行までを追加する
+  }
+</code></pre>
+<p><img style="width: 24.00px" src="img/b2f84ff91b0e1396.png"><code>title</code>を変更し、<code>AppBar</code>を削除して、<code>home</code>プロパティを<code>RandomWords</code>ウィジェットにするよう<code>MyApp</code>の<code>build</code>メソッドを修正します。</p>
+<pre><code> @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: &#39;Startup Name Generator&#39;,
+      home: RandomWords(),
+    );
+  }</code></pre>
+<p><img style="width: 24.00px" src="img/b2f84ff91b0e1396.png">アプリを再起動します。どんなにスクロールしていっても単語のペアのリストが出てくるはずです。</p>
+<table>
+<tr><td colspan="1" rowspan="1"><p><code>Android</code></p>
+</td><td colspan="1" rowspan="1"><p><code>iOS</code></p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p class="image-container"><img style="width: 286.00px" src="img/df2b3cb779e0020e.png"></p>
+</td><td colspan="1" rowspan="1"><p class="image-container"><img style="width: 286.00px" src="img/c58bc59f9ad361a4.png"></p>
+</td></tr>
+</table>
+<h2 is-upgraded>問題がある場合</h2>
+<p>アプリが正しく動作しない場合はタイプミスを確認してください。必要な場合は以下のリンク先のコードを使用して続けることもできます。</p>
+<ul>
+<li><a href="https://github.com/flutter/codelabs/blob/master/startup_namer_null_safety/step4_infinite_list/lib/main.dart" target="_blank">lib/main.dart</a></li>
+</ul>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="次のステップ" duration="0">
+        <h2 is-upgraded>おめでとうございます！</h2>
+<p>パート1を完成することができました！</p>
+<p>このアプリを拡張したいという方はパート2に進んでください。パート2では以下のような変更をします。</p>
+<ul>
+<li>インタラクティブ性の追加</li>
+<li>新しい画面遷移の追加</li>
+<li>テーマカラーの変更</li>
+</ul>
+<p>パート2を終えるとアプリはこのようになります。</p>
+<p class="image-container"><img style="width: 454.00px" src="img/71f492c779522abd.gif"></p>
+<h2 is-upgraded>次のステップは他にもあります</h2>
+<p>Flutter SDKについてさらに学ぶには下記のリンク先を見てみると良いでしょう。</p>
+<ul>
+<li><a href="https://flutter.dev/docs/development/ui/layout" target="_blank">Layouts in Flutter</a></li>
+<li><a href="https://flutter.dev/docs/development/ui/interactive" target="_blank">Add interactivity tutorial</a></li>
+<li><a href="https://flutter.dev/docs/development/ui/widgets-intro" target="_blank">Introduction to widgets</a></li>
+<li><a href="https://flutter.dev/docs/get-started/flutter-for/android-devs" target="_blank">Flutter for Android developers</a></li>
+<li><a href="https://flutter.dev/docs/get-started/flutter-for/react-native-devs" target="_blank">Flutter for React Native developers</a></li>
+<li><a href="https://flutter.dev/docs/get-started/flutter-for/web-devs" target="_blank">Flutter for web developers</a></li>
+<li><a href="https://www.youtube.com/flutterdev" target="_blank">Flutter YouTube channel</a></li>
+</ul>
+<p>他にもあります。</p>
+<ul>
+<li><a href="https://www.udacity.com/course/build-native-mobile-apps-with-flutter--ud905" target="_blank">Build Native Mobile Apps with Flutter</a></li>
+<li><a href="https://codelabs.developers.google.com/codelabs/from-java-to-dart/#1" target="_blank">From Java to Dart codelab</a></li>
+<li><a href="https://flutter.dev/cookbook/" target="_blank">Flutter cookbook</a></li>
+<li><a href="https://flutter.dev/bootstrap-into-dart/" target="_blank">Bootstrap into Dart</a>: 言語についてさらに学びます</li>
+</ul>
+<p><a href="https://flutter.dev/community" target="_blank">Flutterのコミュニティも覗いてみてください</a>！</p>
+
+
+      </google-codelab-step>
+    
+  </google-codelab>
+
+  <script src="https://storage.googleapis.com/codelab-elements/native-shim.js"></script>
+  <script src="https://storage.googleapis.com/codelab-elements/custom-elements.min.js"></script>
+  <script src="https://storage.googleapis.com/codelab-elements/prettify.js"></script>
+  <script src="https://storage.googleapis.com/codelab-elements/codelab-elements.js"></script>
+  <script src="//support.google.com/inapp/api.js"></script>
+
+</body>
+</html>
