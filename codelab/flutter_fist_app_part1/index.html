@@ -40,7 +40,7 @@
 <li>状態を維持するウィジェットを実装する方法</li>
 <li>限界のない遅延ロードリストの作り方</li>
 </ul>
-<p>このコードラボのパート2では、インタラクティブ性の追加、アプリのテーマの変更、新たな画面への遷移（Flutterではルートと呼びます）の機能を追加します。</p>
+<p>このコードラボの<a href="https://codelabs.developers.google.com/codelabs/first-flutter-app-pt2/" target="_blank">パート2</a>では、インタラクティブ性の追加、アプリのテーマの変更、新たな画面への遷移（Flutterではルートと呼びます）の機能を追加します。</p>
 <h2 is-upgraded><strong>パート1で作るもの</strong></h2>
 <p>スタートアップの会社名の提案リストを生成するシンプルなアプリを作成します。ユーザーは名前を選択したり洗濯を解除することができ、ベストなものをひとつ保存できます。コードは一度に10種類の名前を遅延生成します。ユーザーがスクロールすると追加の名前が生成されます。ユーザーがどれだけスクロールしても制限はありません。</p>
 <p>次のアニメGIFはこのパートで完成するアプリの動作を示しています。</p>
@@ -194,7 +194,7 @@ class MyApp extends StatelessWidget {
 <p><img style="width: 24.00px" src="img/b2f84ff91b0e1396.png">ウィジェットの名前として<code>RandomWords</code>を入力します</p>
 <p>下記のコードのように、<code>RandomWords</code>ウィジェットはその<code>State</code>クラスを生成する以外のことも少し行います。</p>
 <p>ステートフルウィジェットの名前として<code>RandomWords</code>と入力すると、IDEは自動的に付随する<code>State</code>クラスを更新します。この場合<code>_RandomWordsState</code>となります。デフォルトでは<code>State</code>クラスの名前の先頭にアンダースコアが付加されます。Dart言語ではアンダースコアがついた識別子は内部用途限定となり、<code>State</code>オブジェクトにはその慣例があてはめられます。</p>
-<p>IDEはstateクラスを<code>State&lt;RandomWords&gt;</code>を継承するように自動的に更新します。これはジェネリックな<code>State</code>クラスを<code>RandomWords</code>で指定したものを使っていることを示しています。アプリのロジックのほとんどはここに属し、<code>RandomWords</code>ウィジェットの状態を保持します。このクラスは生成された単語のペアのリストを保存します。そのリストはユーザーがスクロールすることで無限に増えます。そしてこのコードラボのパート2ではリストのハートアイコンを押すことで単語のペアをお気に入りに入れたり外したりすることができるようにします。</p>
+<p>IDEはstateクラスを<code>State&lt;RandomWords&gt;</code>を継承するように自動的に更新します。これはジェネリックな<code>State</code>クラスを<code>RandomWords</code>で指定したものを使っていることを示しています。アプリのロジックのほとんどはここに属し、<code>RandomWords</code>ウィジェットの状態を保持します。このクラスは生成された単語のペアのリストを保存します。そのリストはユーザーがスクロールすることで無限に増えます。そしてこのコードラボの<a href="https://codelabs.developers.google.com/codelabs/first-flutter-app-pt2/" target="_blank">パート2</a>ではリストのハートアイコンを押すことで単語のペアをお気に入りに入れたり外したりすることができるようにします。</p>
 <p>それぞれのクラスは次のようになります。</p>
 <pre><code>class RandomWords extends StatefulWidget {
   @override
@@ -265,7 +265,7 @@ class _RandomWordsState extends State&lt;RandomWords&gt; {
     return ListView.builder(
       padding: const EdgeInsets.all(16),
       // itemBuilderコールバックは単語のペアが提示される度に呼び出され
-      // それぞれListTitle行に配置する。偶数行では、関数はListTitle行を
+      // それぞれListTile行に配置する。偶数行では、関数はListTile行を
       // その単語のペアのために追加する。奇数行では、関数は各行を
       // 見た目上区別しやすくするための仕切りとなるウィジェットを追加する。
       // 小さなデバイスでは仕切りは見にくくなるかもしれないことに留意する。
@@ -289,10 +289,10 @@ class _RandomWordsState extends State&lt;RandomWords&gt; {
       }
     );
   }</code></pre>
-<p><code>_buildSuggestions</code>関数は<code>_buildRow</code>を単語のペアごとに呼び出します。この関数は新たなペアを<code>ListTitle</code>に表示します。パート2でより良くすることができるようにしておくためです。</p>
+<p><code>_buildSuggestions</code>関数は<code>_buildRow</code>を単語のペアごとに呼び出します。この関数は新たなペアを<code>ListTile</code>に表示します。<a href="https://codelabs.developers.google.com/codelabs/first-flutter-app-pt2/" target="_blank">パート2</a>でより良くすることができるようにしておくためです。</p>
 <p><img style="width: 24.00px" src="img/b2f84ff91b0e1396.png"><code>_buildRow</code>関数を<code>_RowndomWordsState</code>に追加します。</p>
 <pre><code> Widget _buildRow(WordPair pair) {
-    return ListTitle(
+    return ListTile(
       title: Text(
         pair.asPascalCase,
         style: _biggerFont,
@@ -343,7 +343,7 @@ class _RandomWordsState extends State&lt;RandomWords&gt; {
       <google-codelab-step label="次のステップ" duration="0">
         <h2 is-upgraded>おめでとうございます！</h2>
 <p>パート1を完成することができました！</p>
-<p>このアプリを拡張したいという方はパート2に進んでください。パート2では以下のような変更をします。</p>
+<p>このアプリを拡張したいという方は<a href="https://codelabs.developers.google.com/codelabs/first-flutter-app-pt2/" target="_blank">パート2</a>に進んでください。パート2では以下のような変更をします。</p>
 <ul>
 <li>インタラクティブ性の追加</li>
 <li>新しい画面遷移の追加</li>
